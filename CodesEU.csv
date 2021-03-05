@@ -1,0 +1,572 @@
+CODE_DIFF;EN_DESC
+EU;European Union (EU6-1958, EU9-1973, EU10-1981, EU12-1986, EU15-1995, EU25-2004, EU27-2007, EU28-2013, EU27-2020)
+EU_V;European Union (aggregate changing according to the context)
+EU27_2020_EFTA;European Union - 27 countries (from 2020) and European Free Trade Association (EFTA)
+EU27_2020;European Union - 27 countries (from 2020)
+EU28_EFTA;European Union - 28 countries (2013-2020) and European Free Trade Association (EFTA)
+EU28_IS_K;European Union - 28 countries (2013-2020) and Iceland under the Kyoto Protocol
+EU28;European Union - 28 countries (2013-2020)
+EU27_2007;European Union - 27 countries (2007-2013)
+EU27_2007_X_FR;European Union - 27 countries (2007-2013) except France (26 countries)
+EU25;European Union - 25 countries (2004-2006)
+EU15;European Union - 15 countries (1995-2004)
+EU15_NO;European Union - 15 countries (1995-2004) and Norway
+NMS13;New Member States - 13 countries (from 2013)
+NMS12;New Member States - 12 countries (2007-2013)
+NMS10;New Member States - 10 countries (2004-2006)
+EU12;European Community - 12 countries (1986-1994)
+EU10;European Community - 10 countries (1981-1985)
+EU9;European Community - 9 countries (1973-1980)
+EU6;European Community  - 6 founder countries (1958-1972)
+EA;Euro area (EA11-1999, EA12-2001, EA13-2007, EA15-2008, EA16-2009, EA17-2011, EA18-2014, EA19-2015)
+EA19;Euro area - 19 countries  (from 2015)
+EA18;Euro area - 18 countries (2014)
+EA17;Euro area - 17 countries (2011-2013)
+EA16;Euro area - 16 countries (2009-2010)
+EA15;Euro area - 15 countries (2008)
+EA13;Euro area - 13 countries (2007)
+EA12;Euro area - 12 countries (2001-2006)
+EA11;Euro area - 11 countries (1999-2000)
+BE;Belgium
+BG;Bulgaria
+CZ;Czechia
+DK;Denmark
+DE;Germany (until 1990 former territory of the FRG)
+EE;Estonia
+IE;Ireland
+EL;Greece
+ES;Spain
+FR;France
+HR;Croatia
+IT;Italy
+CY;Cyprus
+LV;Latvia
+LT;Lithuania
+LU;Luxembourg
+HU;Hungary
+MT;Malta
+NL;Netherlands
+AT;Austria
+PL;Poland
+PT;Portugal
+RO;Romania
+SI;Slovenia
+SK;Slovakia
+FI;Finland
+SE;Sweden
+UK;United Kingdom
+UK_K;United Kingdom under the Kyoto Protocol
+UK_OCT;British overseas countries and territories
+BLEU;Belgo-Luxembourg Economic Union
+BNL;Benelux Countries
+BAL;Baltic countries
+CHUNNEL;Channel Tunnel
+EU_NEU;EU countries and non-EU countries (aggregate changing according to the context)
+EU27_2020_NEU27_2020;EU27 countries (from 2020) and non-EU27 countries (from 2020)
+EU28_NEU28;EU28 countries (2013-2020) and non-EU28 countries (2013-2020)
+EU27_2020_NEA19;EU27 countries (from 2020) not in EA19 (from 2015) - 8 countries
+EU28_NEA19;EU28 countries (2013-2020) not in EA19 (from 2015) - 9 countries
+NMS_NEA19;New Member States not in EA19 (from 2015) - 6 countries
+EU27_2020_NEA18;EU27 countries (from 2020) not in EA18 (2014) - 9 countries
+EU28_NEA18;EU28 countries (2013-2020) not in EA18 (2014) - 10 countries
+EU27_2020_NEA17;EU27 countries (from 2020) not in EA17 (2011-2013) - 10 countries
+EU28_NEA17;EU28 countries (2013-2020) not in EA17 (2011-2013) - 11 countries
+EU_OTH;Other EU countries
+EU27_2020_OTH;Other EU27 countries (from 2020)
+EU27_2007_OTH;Other EU27 countries (2007-2013)
+EU25_OTH;Other EU25 countries (2004-2006)
+EU15_OTH;Other EU15 countries (1995-2004)
+INT_EU;Intra-EU
+INT_EU27_2020;Intra-EU27 (from 2020)
+INT_EU28;Intra-EU28 (2013-2020)
+INT_EU27_2007;Intra-EU27 (2007-2013)
+INT_EU25;Intra-EU25 (2004-2006)
+INT_EU15;Intra-EU15 (1995-2004)
+INT_NMS12;Intra-New Member States - 12 countries (2007-2013)
+INT_EA;Intra-euro area
+INT_EU_NAL;Intra-EU, not allocated
+INT_EU15_NAL;Intra-EU15 (1995-2004), not allocated
+INT_EA_NAL;Intra-euro area, not allocated
+EU27_2020_EFTA_FOR;EU27 countries (from 2020) or EFTA countries except reporting country
+EU28_EFTA_FOR;EU28 countries (2013-2020) or EFTA countries except reporting country
+EU_FOR;EU-countries except reporting country
+EU27_2020_FOR;EU27 countries (from 2020) except reporting country
+EU28_FOR;EU28 countries (2013-2020) except reporting country
+EU27_2007_FOR;EU27 countries (2007-2013) except reporting country
+EU25_FOR;EU25 countries (2004-2006) except reporting country
+EU15_FOR;EU15 countries (1995-2004) except reporting country
+EU12_FOR;EU12 countries (1986-1994) except reporting country
+EEA;European Economic Area (EEA18-1995, EEA28-2004, EEA30-2007, EEA31-2013, EEA30-2020)
+EEA30_2020;European Economic Area (EU27 from 2020 and IS, LI, NO)
+EEA31;European Economic Area (EU28 - 2013-2020 and IS, LI, NO)
+EEA30_2007;European Economic Area (EU27 - 2007-2013 and IS, LI, NO)
+EEA28;European Economic Area (EU25 - 2004-2006 and IS, LI, NO)
+EEA18;European Economic Area (EU15 - 1995-2004 and IS, LI, NO)
+EEA_X_LI;European Economic Area except Liechtenstein
+EEA_NEU;EEA-countries except the EU-countries
+EEA18_OTH;Other European Economic Area (EU15 - 1995-2004 and IS, LI, NO)
+EFTA;European Free Trade Association
+IS;Iceland
+CH_LI;Switzerland and Liechtenstein
+LI;Liechtenstein
+NO;Norway
+CH;Switzerland
+EFTA_FOR;European Free Trade Association except reporting country
+EFTA_OTH;Other European Free Trade Association countries
+CPC1;Candidate and potential candidate countries except Turkey and Kosovo (under United Nations Security Council Resolution 1244/99)
+CC_V;Candidate countries (aggregate changing according to the context)
+CC5_15;Candidate countries from 2015 (5 countries)
+CC5_15_FOR;Candidate countries from 2015 (5 countries) except reporting country
+CC6_14;Candidate countries in 2014 (6 countries)
+CC5_13;Candidate countries in 2013 (5 countries)
+CC5_13_FOR_X_IS;Candidate countries in 2013 (5 countries) except reporting country and Iceland
+CC6_12;Candidate countries in 2012 (6 countries)
+CC5_10;Candidate countries in 2010 (5 countries)
+CC4_10;Candidate countries in 2010 (4 countries)
+CC3_07;Candidate countries in 2007 (3 countries)
+CC5_06;Candidate countries in 2006 (5 countries)
+CC4_05;Candidate countries in 2005 (4 countries)
+ME;Montenegro
+MK;North Macedonia
+AL;Albania
+RS;Serbia
+TR;Turkey
+EUR_C_E;Central and Eastern Europe
+EUR_C_E_OTH;Other Central and Eastern European countries
+WBC;WBC - Western Balkan Countries (aggregate changing according to the context)
+CEEC;Central and Eastern European countries except European former CIS Republics (aggregate changing according to the context)
+AD;Andorra
+BY;Belarus
+BA;Bosnia and Herzegovina
+FO;Faroes (DK)
+GI;Gibraltar (UK)
+GG;Guernsey
+IM;Isle of Man
+GG_JE;Guernsey and Jersey (Channel Islands)
+JE;Jersey
+XK;Kosovo (under United Nations Security Council Resolution 1244/99)
+MD;Moldova
+MC;Monaco
+RU;Russia
+SM;San Marino
+SJ;Svalbard and Jan Mayen (NO)
+UA;Ukraine
+VA;Vatican City State
+NCL;Not classifiable according to current borders
+CIS;Commonwealth of Independent States (Former Soviet Union except BAL)
+EXT;Countries other than EU, EFTA and Candidate countries
+HDC_EXT;Highly developed countries (other than EU, EFTA and Candidate countries)
+MDC_EXT;Medium developed countries (other than EU, EFTA and Candidate countries)
+LDC_EXT;Less developed countries (other than EU, EFTA and Candidate countries)
+EXT_EU;Extra-EU
+EXT_EU27_2020;Extra-EU27 (from 2020)
+EXT_EU28;Extra-EU28 (2013-2020)
+EXT_EU27_2007;Extra-EU27 (2007-2013)
+EXT_EU25;Extra-EU25 (2004-2006)
+EXT_EU15;Extra-EU15 (1995-2004)
+EXT_EU12;Extra-EU12 (1986-1994)
+EXT_EA;Extra-euro area
+EXT_EA19;Extra-euro area - 19 countries (from 2015)
+EXT_EA18;Extra-euro area - 18 countries (2014)
+EXT_EA17;Extra-euro area - 17 countries (2011-2013)
+EXT_EA16;Extra-euro area - 16 countries (2009-2010)
+EXT_EA15;Extra-euro area - 15 countries (2008))
+EXT_EA13;Extra-euro area - 13 countries (2007)
+EXT_EA12;Extra-euro area - 12 countries (2001-2006)
+EXT_EA11;Extra-euro area - 11 countries (1999-2000)
+EXT_EU_NAL;Extra-EU, not allocated
+EXT_EU27_2020_NAL;Extra-EU27 (from 2020), not allocated
+EXT_EU28_NAL;Extra-EU28 (2013-2020), not allocated
+EXT_EU27_2007_NAL;Extra-EU27 (2007-2013), not allocated
+EXT_EU25_NAL;Extra-EU25 (2004-2006), not allocated
+EXT_EA_NAL;Extra-euro area, not allocated
+EXT_FOR_HDI;Countries other than EU, EFTA and Candidate countries with Human Development Index (HDI) ranking
+EXT_FOR_HDI_VH;Countries other than EU, EFTA and Candidate countries with very high Human Development Index (HDI)
+EXT_FOR_HDI_H;Countries other than EU, EFTA and Candidate countries with high Human Development Index (HDI)
+EXT_FOR_HDI_M;Countries other than EU, EFTA and Candidate countries with medium Human Development Index (HDI)
+EXT_FOR_HDI_L;Countries other than EU, EFTA and Candidate countries with low Human Development Index (HDI)
+NEU;Non-EU countries (aggregate changing according to the context)
+NEU_HDI_VH;Non-EU countries with very high Human Development Index (HDI)
+NEU_HDI_H;Non-EU countries with high Human Development Index (HDI)
+NEU_HDI_M;Non-EU countries with medium Human Development Index (HDI)
+NEU_HDI_L;Non-EU countries with low Human Development Index (HDI)
+NEU_NHDI;Non-EU countries with no Human Development Index (HDI) ranking
+NEU27_2020_NEFTA;Non-EU27 countries (from 2020) nor EFTA countries
+NEU28_NEFTA;Non-EU28 countries (2013-2020) nor EFTA countries
+NEU27_2020;Non-EU27 countries (from 2020)
+NEU28;Non-EU28 countries (2013-2020)
+NEU_FOR;Non-EU countries nor reporting country (aggregate changing according to the context)
+NEU27_2020_FOR;Non-EU27 countries (from 2020) nor reporting country
+NEU28_FOR;Non-EU28 countries (2013-2020) nor reporting country
+NEU27_2007_FOR;Non-EU27 countries (2007-2013) nor reporting country
+NEU27_2007_FOR_STLS;Non-EU27 countries (2007-2013) nor reporting country and stateless
+NEU15_FOR;Non-EU15 countries (1995-2004) nor reporting country
+EUR_NEU;European non-EU countries (aggregate changing according to the context)
+EUR_NEU27_2020;European non-EU27 countries (from 2020)
+EUR_NEU28;European non-EU28 countries (2013-2020)
+EUR_NEU27_2007;European non-EU27 countries (2007-2013)
+EUR_NEU25;European non-EU25 countries (2004-2006)
+EUR_NEU15;European non-EU15 countries (1995-2004)
+EUR_OTH;Other european countries (aggregate changing according to the context)
+EUR_NSP;European countries, not specified
+AFR_C_S;Central and South Africa
+AFR_C;Central Africa
+AO;Angola
+CM;Cameroon
+CF;Central African Republic
+TD;Chad
+CG;Congo
+CD;Democratic Republic of the Congo
+GQ;Equatorial Guinea
+GA;Gabon
+ST;São Tomé and Príncipe
+AFR_E;Eastern Africa
+BI;Burundi
+KM;Comoros
+DJ;Djibouti
+ER;Eritrea
+ET;Ethiopia
+KE;Kenya
+MG;Madagascar
+MW;Malawi
+MU;Mauritius
+MZ;Mozambique
+RW;Rwanda
+SC;Seychelles
+SO;Somalia
+UG;Uganda
+TZ;Tanzania
+ZM;Zambia
+ZW;Zimbabwe
+AFR_N;Northern Africa
+DZ;Algeria
+EG;Egypt
+LY;Libya
+MA;Morocco
+SS;South Sudan
+SD;Sudan
+TN;Tunisia
+EH;Western Sahara
+AFR_S;Southern Africa
+BW;Botswana
+LS;Lesotho
+NA;Namibia
+ZA;South Africa
+SZ;Eswatini
+AFR_W;Western Africa
+BJ;Benin
+BF;Burkina Faso
+CV;Cabo Verde
+CI;Côte d'Ivoire
+GM;Gambia, The
+GH;Ghana
+GN;Guinea
+GW;Guinea-Bissau
+LR;Liberia
+ML;Mali
+MR;Mauritania
+NE;Niger
+NG;Nigeria
+SH;Saint Helena, Ascension and Tristan da Cunha (UK)
+SN;Senegal
+SL;Sierra Leone
+TG;Togo
+AFR_OTH;Other African countries (aggregate changing according to the context)
+AFR_NSP;African countries, not specified
+AME_N;Northern America
+BM;Bermuda (UK)
+CA_US;Canada and United States
+CA;Canada
+GL;Greenland (DK)
+PM;Saint Pierre and Miquelon (FR)
+US;United States
+AME_N_OTH;Other Northern American countries
+AME_N_NSP;Northern American countries, not specified
+AME_X_N;Caribbean, Central and South America
+AME_C_CRB;Central America and Caribbean
+CRB;Caribbean
+AI;Anguilla (UK)
+AG;Antigua and Barbuda
+AW;Aruba (NL)
+BS;Bahamas
+BB;Barbados
+BQ;Bonaire, Saint Eustatius and Saba
+VG;British Virgin Islands (UK)
+KY;Cayman Islands (UK)
+CU;Cuba
+CW;Curaçao
+DM;Dominica
+DO;Dominican Republic
+GD;Grenada
+HT;Haiti
+JM;Jamaica
+MS;Montserrat (UK)
+AN;Former Netherlands Antilles
+PR;Puerto Rico (US)
+BL;Saint-Barthélemy (FR)
+KN;Saint Kitts and Nevis
+LC;Saint Lucia
+MF;Saint Martin (FR)
+VC;Saint Vincent and the Grenadines
+SX;Sint Maarten
+TT;Trinidad and Tobago
+TC;Turks and Caicos Islands (UK)
+VI;US Virgin Islands (US)
+CRB_OTH;Other Caribbean countries
+AME_C_S;Central and South America
+AME_LAT;Latin American countries
+AME_C;Central America
+BZ;Belize
+CP;Clipperton (FR)
+CR;Costa Rica
+SV;El Salvador
+GT;Guatemala
+HN;Honduras
+MX;Mexico
+NI;Nicaragua
+PA;Panama
+AME_C_OTH;Other Central American countries
+AME_S;South America
+AR;Argentina
+BO;Bolivia
+BR;Brazil
+CL;Chile
+CO;Colombia
+EC;Ecuador
+FK;Falkland Islands (UK)
+GY;Guyana
+PY;Paraguay
+PE;Peru
+SR;Suriname
+UY;Uruguay
+VE;Venezuela
+AME_C_S_OTH;Other Central or South American countries
+AME_S_OTH;Other South American countries
+AME_X_N_OTH;Other Caribbean, Central and South American countries
+AME_X_N_NSP;Caribbean, Central and South American countries, not specified
+AME_OTH;Other American countries (aggregate changing according to the context)
+ASI_C;Central Asia
+KZ;Kazakhstan
+KG;Kyrgyzstan
+TJ;Tajikistan
+TM;Turkmenistan
+UZ;Uzbekistan
+ASI_E;Eastern Asia
+CN;China including Hong Kong
+CN_X_HK;China except Hong Kong
+HK;Hong Kong
+MO;Macao
+JP;Japan
+MN;Mongolia
+KP;North Korea
+KR;South Korea
+TW;Taiwan
+ASI_E_OTH;Other Eastern Asian countries
+ASI_S;Southern Asia
+AF;Afghanistan
+BD;Bangladesh
+BT;Bhutan
+IO;British Indian Ocean Territory (UK)
+IN;India
+IR;Iran
+MV;Maldives
+NP;Nepal
+PK;Pakistan
+LK;Sri Lanka
+ASI_S_E;South-Eastern Asia
+BN;Brunei Darussalam
+KH;Cambodia
+ID;Indonesia
+LA;Laos
+MY;Malaysia
+MM;Myanmar/Burma
+PH;Philippines
+SG;Singapore
+TH;Thailand
+TL;Timor-Leste
+VN;Vietnam
+ASI_W_IR;Western Asia including Iran
+ASI_W;Western Asia
+AM;Armenia
+AZ;Azerbaijan
+BH;Bahrain
+GE;Georgia
+IQ;Iraq
+IL;Israel
+JO;Jordan
+KW;Kuwait
+LB;Lebanon
+PS;Palestine
+OM;Oman
+QA;Qatar
+SA;Saudi Arabia
+SY;Syria
+AE;United Arab Emirates
+YE;Yemen
+EX_YE;Former North Yemen (before 1990)
+EX_YD;Former South Yemen (before 1990)
+ASI_NME;Near and Middle East Asia (aggregate changing according to the context)
+ASI_NME_OTH;Other Near and Middle East Asian countries
+ASI_G;Gulf Arabian Countries
+ASI_W_OTH;Other Western Asian countries
+EX_SU_ASI;Asian Republics of the former Soviet Union
+ASI_OTH;Other Asian countries (aggregate changing according to the context)
+ASI_NSP;Asian countries, not specified
+AU_NZ;Australia and New Zealand
+AU;Australia
+CX;Christmas Island (AU)
+CC;Cocos (Keeling) Islands (AU)
+HM;Heard Island and McDonald Islands (AU)
+NF;Norfolk Island (AU)
+NZ;New Zealand
+MEL;Melanesia
+FJ;Fiji
+NC;New Caledonia (FR)
+PG;Papua New Guinea
+SB;Solomon Islands
+VU;Vanuatu
+MIC;Micronesia
+GU;Guam (US)
+KI;Kiribati
+MH;Marshall Islands
+FM;Federated States of Micronesia
+NR;Nauru
+MP;Northern Mariana Islands (US)
+PW;Palau
+POL;Polynesia
+AS;American Samoa (US)
+CK;Cook Islands (NZ)
+PF;French Polynesia (FR)
+NU;Niue (NZ)
+PN;Pitcairn Islands (UK)
+WS;Samoa
+TK;Tokelau (NZ)
+TO;Tonga
+TV;Tuvalu
+WF;Wallis and Futuna (FR)
+UM;United States Minor Outlying Islands (US)
+OCE_OTH;Other Oceanian countries (aggregate changing according to the context)
+OCE_NSP;Oceanian countries, not specified
+BV;Bouvet Island (NO)
+GS;South Georgia and the South Sandwich Islands (UK)
+TF;French Southern Territories (FR)
+PARL_NAT;National parliament
+GOV_NAT;National government
+EUI;Institutions and bodies of the European Union
+EUI_X_EAI;EU institutions except the institutions of the euro area (aggregate changing according to the context)
+EUI_X_ECB;EU institutions except the ECB
+PARL;European Parliament
+COUNCIL;European Council
+CONS;Council of the European Union
+COMM;European Commission
+EU_NSI;Eurostat
+CURIA;Court of Justice
+ECA;European Court of Auditors
+EESC;European Economic and Social Committee
+COR;European Committee of the Regions
+EIB;European Investment Bank
+EIF;European Investment Fund
+ECB;European Central Bank (ECB)
+ESM;European Stability Mechanism
+EDF;European Development Fund
+EU_BDG;All EU institutions financed via the EU Budget
+EUB_MNR;Other small EU institutions financed via the EU Budget
+EUB_OTH;Other EU institutions financed via the EU Budget
+EUI_NBDG;EU institutions not financed via the EU Budget
+ECSC;European Coal and Steel Community
+EMI;European Monetary Institute
+EMCF;European Monetary Cooperation Fund
+EURATOM;European Atomic Energy Community
+UNO;United Nations Organization
+UNICEF;United Nations Children's Fund (UNICEF)
+UNHCR;United Nations High Commissioner for Refugees, Office of the (UNHCR)
+UNRWA;United Nations Relief and Works Agency for Palestine Refugees in the Near East (UNRWA)
+ILO;International Labour Organization (ILO)
+FAO;Food and Agricultural Organization (FAO)
+UNESCO;United Nations Educational, Scientific and Cultural Organization (UNESCO)
+WHO;World Health Organization (WHO)
+IBRD;International Bank for Reconstruction and Development
+IDA;International Development Association
+IFC;International Finance Corporation (IFC)
+MIGA;Multilateral Investment Guarantee Agency (MIGA)
+IMF;International Monetary Fund
+ITU;International Telecommunication Union (ITU)
+IFAD;International Fund for Agricultural Development (IFAD)
+WTO;World Trade Organization
+IAEA;International Atomic Energy Agency (IAEA)
+UNO_OTH;United Nations Organization except IMF, WTO, IBRD, IDA
+ORG_OTH;Other International Organizations
+ACP;African, Caribbean and Pacific Group of States, signatories of the Partnership Agreement
+ACP_AFR;African ACP states
+ACP_CRB;Caribbean ACP states
+ACP_PAC;Pacific ACP states
+AFDB;African Development Bank
+ALA;Partner Countries in Asia and Latin America
+APEC;Asia-Pacific Economic Cooperation
+ASDB;Asian Development Bank
+ASEAN;Association of Southeast Asian Nations
+BIS;Bank for International Settlements
+BRIC;BRIC countries
+BRICS;BRICS countries
+CAN;Andean Community of Nations
+CARICOM;Caribbean Community
+CEMAC;Central African Economic and Monetary Community
+COMESA;Common Market for Eastern and Southern Africa
+DAC;Development assistance committee (DAC)
+EASA;European Aviation Safety Agency (EASA)
+NEASA;Non-EASA member countries
+EBRD;European Bank for Reconstruction and Development
+ECCAS;Economic Community of Central African States
+ECOWAS;Economic Community of West African States
+EHEA;European Higher Education Area (Bologna Process)
+ESA;European Space Agency
+EURMED;Mediterranean countries in the Euro-Mediterranean Partnership
+FEMIP;Facility for Euro-Mediterranean Investment and Partnership
+G20;Group of Twenty
+IDB;Inter-American Development Bank
+IF;Investment Facility
+MACR;Mashrek
+MAGR;Maghreb
+MED;Mediterranean Basin Countries
+MED_X_HR;Mediterranean Basin Countries except Croatia
+MERCOSUR;Southern Common Market
+NAFTA;North American Free Trade Agreement
+ODA;Countries and territories receiving Official Development Assistance
+OECD;Organisation for Economic Co-operation and Development (OECD)
+OECD34;Organisation for Economic Co-operation and Development (OECD - 34 countries)
+NOECD;Non-OECD countries
+OPEC;Organization of Petroleum Exporting Countries (OPEC)
+OPEC12;Organization of Petroleum Exporting Countries (OPEC - 12 countries)
+PALOP;Portuguese-speaking African Countries
+SADC;Southern African Development Community
+UEMOA;West African Economic and Monetary Union
+ORG_NEUR;Non European International Organizations
+DAE;Dynamic Asian economies (DAEs)
+DOM;Domestic
+DOT;Domestic and outbound
+EURONEXT;"Euronext from 01/2001: Amsterdam-Brussels-Paris; from 02/2002: + Lisbon"
+FOR_STLS;Foreign country and stateless
+FOR;Foreign country
+INR;In the same region
+LDC;Least developed countries
+LMIC;Lower middle income countries
+MADCT;More advanced developing countries and territories
+NAT;Reporting country
+NIC_S1;Core Newly Industrializing Countries
+NIC_S2A;Asian NICs of the second wave of industrialization
+NIC_S2LA;Latin American NICs of the second wave of industrialization
+OFFSHO;Offshore financial centers
+OLIC;Other low income countries
+OMX;Nordic and Baltic marketplace
+OUT;Outbound
+OUTR;In another region
+OUT_C;Outside any country
+RNC;Recognised non-citizens
+STLS;Stateless
+TOTAL;Total
+UMIC;Upper middle income countries
+UMIC_X_CN;Upper middle income countries except China
+WORLD;All countries of the world
+WRL_NAL;World - not allocated
+WRL_REST;Rest of the world
+WRL_X_REP;World total except the reporting country
