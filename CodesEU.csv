@@ -1,5 +1,5 @@
 CODE_DIFF;EN_DESC
-EU;European Union (EU6-1958, EU9-1973, EU10-1981, EU12-1986, EU15-1995, EU25-2004, EU27-2007, EU28-2013, EU27-2020)
+EU;European Union
 EU_V;European Union (aggregate changing according to the context)
 EU27_2020_EFTA;European Union - 27 countries (from 2020) and European Free Trade Association (EFTA)
 EU27_2020;European Union - 27 countries (from 2020)
@@ -18,7 +18,7 @@ EU12;European Community - 12 countries (1986-1994)
 EU10;European Community - 10 countries (1981-1985)
 EU9;European Community - 9 countries (1973-1980)
 EU6;European Community  - 6 founder countries (1958-1972)
-EA;Euro area (EA11-1999, EA12-2001, EA13-2007, EA15-2008, EA16-2009, EA17-2011, EA18-2014, EA19-2015)
+EA;Euro area
 EA19;Euro area - 19 countries  (from 2015)
 EA18;Euro area - 18 countries (2014)
 EA17;Euro area - 17 countries (2011-2013)
@@ -31,7 +31,7 @@ BE;Belgium
 BG;Bulgaria
 CZ;Czechia
 DK;Denmark
-DE;Germany (until 1990 former territory of the FRG)
+DE;Germany
 EE;Estonia
 IE;Ireland
 EL;Greece
@@ -144,7 +144,7 @@ GG;Guernsey
 IM;Isle of Man
 GG_JE;Guernsey and Jersey (Channel Islands)
 JE;Jersey
-XK;Kosovo (under United Nations Security Council Resolution 1244/99)
+XK;Kosovo
 MD;Moldova
 MC;Monaco
 RU;Russia
@@ -219,7 +219,7 @@ CG;Congo
 CD;Democratic Republic of the Congo
 GQ;Equatorial Guinea
 GA;Gabon
-ST;São Tomé and Príncipe
+ST;SÃ£o TomÃ© and PrÃ­ncipe
 AFR_E;Eastern Africa
 BI;Burundi
 KM;Comoros
@@ -257,7 +257,7 @@ AFR_W;Western Africa
 BJ;Benin
 BF;Burkina Faso
 CV;Cabo Verde
-CI;Côte d'Ivoire
+CI;CÃ´te d'Ivoire
 GM;Gambia, The
 GH;Ghana
 GN;Guinea
@@ -294,7 +294,7 @@ BQ;Bonaire, Saint Eustatius and Saba
 VG;British Virgin Islands (UK)
 KY;Cayman Islands (UK)
 CU;Cuba
-CW;Curaçao
+CW;CuraÃ§ao
 DM;Dominica
 DO;Dominican Republic
 GD;Grenada
@@ -303,7 +303,7 @@ JM;Jamaica
 MS;Montserrat (UK)
 AN;Former Netherlands Antilles
 PR;Puerto Rico (US)
-BL;Saint-Barthélemy (FR)
+BL;Saint-BarthÃ©lemy (FR)
 KN;Saint Kitts and Nevis
 LC;Saint Lucia
 MF;Saint Martin (FR)
