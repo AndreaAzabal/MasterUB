@@ -1,0 +1,345 @@
+---
+title: 'MÓDULO 5: Técnicas Avanzadas de Predicción'
+author: "Andrea Azabal Lamoso"
+date: "17/05/2021"
+output:
+  word_document:
+    toc: yes
+  html_document:
+    toc: yes
+    df_print: paged
+  pdf_document:
+    toc: yes
+subtitle: MODELOS LINEALES GENERALIZADOS
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE)
+library(knitr)
+library(pander)
+library(kableExtra)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggcorrplot)
+suppressPackageStartupMessages(library(tidyverse))
+library(reticulate)
+require(effects)
+```
+
+
+```{r include=FALSE}
+source("Functions.R")
+```
+
+# Carga de datos
+
+Contamos con los datos de credit scoring de una entidad bancaria con los siguientes atributos:
+
+- Status of existing checking account. 
+- Duration in month. 
+- Credit history. 
+- Purpose. 
+- Credit amount. 
+- Savings account/bonds. 
+- Present employment since. 
+- Installment rate in percentage of disposable income. 
+- Personal status and sex. 
+- Other debtors / guarantors. 
+- Present residence since. 
+- Property. 
+- Age in years. 
+- Other installment plans. 
+- Housing. 
+- Number of existing credits at this bank. 
+- Job. 
+- Number of people being liable to provide maintenance for. 
+- Telephone. 
+- Foreign worker. 
+
+Procedemos a importar el *dataframe* y generar la variable respuesta:
+
+```{r}
+german_credit <- read.table("http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data")
+colnames(german_credit)<-c("chk_acct","duration","credit_his","purpose","amount","saving_acct","present_emp","installment_rate","sex","other_debtor","present_resid","property","age","other_install","housing","n_credits","job","n_people","telephone","foreign","response")
+german_credit$response <- german_credit$response - 1
+german_credit$response <- as.factor(german_credit$response)
+```
+
+Podemos ver a continuación, gracias a la función `glimpse()`, un resumen de las variables contenidas en el *dataset*:
+```{r}
+glimpse(german_credit)
+numericas <- dplyr::select(german_credit, duration, amount,installment_rate,present_resid,age,n_credits,n_people)
+```
+Por tanto, nos fijamos en que hay 13 variables categóricas, 7 numéricas de tipo entero y el factor de dos niveles que hemos creado para la respuesta. 
+
+
+
+
+# 1. Propón un modelo lineal logit en el que la variable respuesta (crédito bueno=0, crédito malo=1), lo expliquen el resto de variables. 
+
+Queremos crear un modelo que, a partir de los datos disponibles, sea capaz de explicar el tipo de crédito asignado a cada cliente, el cual es una variable binaria. Es decir, con este modelo se busca averiguar qué variables explicativas son relevantes a la hora de determinar si un cliente es "bueno" o "malo" a la hora de concederle un crédito.
+
+Como la variable respuesta es dicotómica, no es adecuado utilizar una regresión lineal a la hora de modelizar el *dataset* pues se incumplen las hipótesis fundamentales. En primer lugar, la razón más obvia es que con una regresión lineal el valor estimado es continuo y, además, los errores han de estar distribuidos normalmente. Para un ejercicio de clasificación como el nuestro, el hecho de que la variable explicada pueda tomar valores continuos (sobre todo si existen variables continuas entre las exógenas) supone un problema ya que es probable que no consigamos acotar la respuesta en el rango 0-1. Por otra parte, la varianza en este tipo de datos es una función del promedio y no varía de manera constante, es decir, los residuos no son homocedásticos.
+
+Es, por tanto, necesario buscar otro tipo de modelizado que se adecúe más a nuestras necesidades. En este caso vamos a utilizar un modelo logístico, en el cual se relajan las hipótesis del modelo de regresión lineal ordinario. Así, se establece una función *link*, en este caso el logaritmo, como relación entre las variables dependiente e independientes. En el modelizado, se busca estimar la probabilidad de que la variable respuesta (binaria) tome el valor unidad. Además, la varianza deja de ser constante y pasa a ser una función de la probabilidad estimada.
+
+La fórmula del ajuste en este caso es:
+
+$$ ln(\frac{p}{1-p})=\sum_i \beta_i x_{i}$$
+siendo $p$ la probabilidad de que la variable independiente adquiera el valor unidad (lo que equivale a un crédito malo). Se tiene, además, el caso particular $x_0=1$.
+
+Vamos a utilizar todas las variables del *dataset* para realizar el modelizado.  Para ello, nos valemos de la función `glm`, la cual nos proporcionará los parámetros del ajuste obtenidos mediante el método de máxima verosimilitud:
+
+```{r}
+formula <- as.formula('response~chk_acct+duration+credit_his+purpose+amount+saving_acct+present_emp+installment_rate+sex+other_debtor+present_resid+property+age+other_install+housing+n_credits+job+n_people+telephone+foreign')
+mod_logit<-glm(formula=formula,data=german_credit,family=binomial(link="logit"))
+summary(mod_logit)
+```
+
+Podemos averiguar la devianza del modelo:
+
+```{r}
+mod_logit$deviance
+```
+
+También podemos representar los residuos en un gráfico Q-Q para comprobar si siguen una distribución normal:
+```{r}
+plot(mod_logit,which=c(2),main="Logit", adj = 0)
+```
+
+<br>
+
+Se ve que los residuos no se ajustan demasiado bien a una distribución normal.
+
+Los efectos marginales nos dicen cuánto cambio se produce en nuestra variable respuesta estimada dado un cambio de una unidad en la variable explicativa:
+
+```{r }
+logitmfx(formula = formula,data=german_credit)
+```
+
+Vemos que los efectos marginales más significativos corresponden a las variables explicativas más significativas del modelo.
+
+Por último, podemos averiguar la capacidad de predicción del modelo mediante una curva ROC, en la cual se muestra el rendimiento del modelo en todos los umbrales de corte. Más en concreto, se representa la sensibilidad frente a la especificidad en diferentes umbrales de clasificación. 
+
+El umbral de clasificación es el valor que hace que clasifiquemos las distintas observaciones como positivas o negativas, por lo que, si se reduce el umbral, aumentarán tanto los falsos como los verdaderos positivos.
+
+Mediante el algoritmo AUC, se está integrando el área bajo la curva ROC. Es decir, está proporcionando una medición agregada del rendimiento en todos los umbrales de clasificación posibles. Una forma de interpretar el AUC es como la probabilidad de que el modelo clasifique una observación 1 con un mayor $p$ (probabilidad estimada) que una observación 0. 
+
+```{r message=FALSE}
+auc(german_credit$response,predict(mod_logit,german_credit,type="response"))
+```
+
+Este valor es invariante con respecto a la escala y toma valores en el intervalo [0,1], siendo un valor 0 equivalente a predicciones incorrectas. El valor obtenido, $0,83$, es bastante bueno por lo que podemos considerar que el modelo clasifica satisfactoriamente.
+
+Si representamos las predicciones del modelo:
+
+```{r results='asis'}
+predict<-predict(mod_logit,german_credit,type="response")
+ggplot(german_credit, aes(x =predict , fill = as.factor(response))) +  geom_density(alpha = .5)
+```
+
+Vemos que los valores 0 se están clasificando bastante bien, mientras que los valores 1 no tienen una probabilidad próxima a 1, sino que presentan una distribución más uniforme. Este tipo de visualización nos ayuda a ver el punto
+de corte óptimo que tendríamos que meter en la probabilidad para maximizar las diferencias entre 0 y 1. En la figura, parece que un valor en el intervalo [0.3,0.5] sería el óptimo, pues es cuando empiezan a disminuir las predicciones $p=0$ y a aumentar las predicciones $p=1$.
+
+
+# 2. Interpreta la variable duration. ¿Es significativa? ¿A partir de qué nivel de significación deja de ser significativa? 
+
+Para averiguar si la variable *duration* es significativa, basta con saber si podemos rechazar la hipótesis nula en la que se tiene $\beta_{\text{duration}}=0$. Si el coeficiente es compatible con 0, entonces no está contribuyendo al modelo y concluimos que no se trata de una variable significativa.
+
+Con este fin, podemos basarnos en los valores devueltos por el estadístico z. Este estadístico tiene una distribución conocida y nos ayuda a identificar si se puede o no rechazar $H_0$. En concreto, puede rechazarse la hipótesis nula siempre que z sea lo suficientemente lejano a 0. Para determinar si el valor de z es lo suficientemente lejano de 0, se establece un nivel de significación, habitualmente $\alpha=0,05$.
+
+
+Una forma sencilla de determinar si se rechaza o no la $H_0$ es calculando el p-value asociado al estadístico z. El p-value asociado a z determina el nivel máximo para el cual el test basado en z rechaza la hipótesis nula. Es decir, la hipótesis nula se rechaza para todos los valores superiores al p-value.
+
+Por tanto, **si el p-value obtenido es menor al nivel de significación seleccionado, $p<\alpha$, podemos rechazar la hipótesis nula y concluir que $\beta_{\text{duration}} \neq 0$**.
+
+Fijándonos en los valores del modelizado del ejercicio 1 para la variable *duration*, vemos que z=2.997 y el p-value es 0.002724. En este caso, **se concluye que la variable es estadísticamente significativa** y no aporta ruido al modelo, sino que su contribución es distinta a la que se tendría por efectos del azar.
+
+Al ser $p=0,0027<0,01$, en este caso se podría elegir un $\alpha=0,01$ más restrictivo que el utilizado habitualmente y decir que la variable deja de ser significativa a partir de 0,01. Sin embargo, no podría utilizarse un $\alpha=0,001$, ya que en este caso la variable sería considerada como no significativa.
+
+
+
+# 3. Si eliminamos la variable amount del modelo, ¿crees que alguna otra variable incrementaría el sesgo provocado por la falta de amount en el modelo? Es decir, identifica el sesgo en otra variable producido por eliminar la variable amount. 
+
+Cuando en un modelo de regresión se omiten variables relevantes, se incrementa el sesgo de las variables explicativas que estaban altamente correlacionadas con las variables omitidas. Como resultado, el modelo atribuye los efectos de las variables omitidas a las que persisten en el modelo, dando lugar a estimadores sesgados. La cantidad de sesgo adquirida por el modelo depende del nivel de correlación entre las variables explicativas y omitidas.
+
+
+El principal problema de tener modelos sesgados es que, si bien pueden ajustarse bien al conjunto de datos que tenemos, pueden no ser buenos predictores. Así, puede que se estén subestimando o sobreestimando ciertos efectos, o incluso estén llegando a enmascararse. 
+
+
+Si representamos las correlaciones entre las variables numéricas de nuestro modelo:
+
+```{r}
+cr <- cor(numericas, use="complete.obs")
+ggcorrplot(cr, hc.order = TRUE,type = "lower",lab = TRUE)
+```
+<br>
+
+Vemos que hay una alta correlación entre las variables **amount** y **duration**. Esto es lógico pues, a mayor importe concedido en un crédito, el plazo de devolución será en la mayoría de casos más largo que para importes más bajos; es decir, ambas son directamente proporcionales como se muestra en la representación.
+
+Por tanto, al eliminarse *amount*, podría aumentar el sesgo de la variable *duration*. Si representamos de nuevo el modelo, vemos que la variable *duration* ahora es más significativa:
+
+```{r}
+formula_sinamount <- as.formula('response~chk_acct+duration+credit_his+purpose+saving_acct+present_emp+installment_rate+sex+other_debtor+present_resid+property+age+other_install+housing+n_credits+job+n_people+telephone+foreign')
+mod_logit_sinamount<-glm(formula=formula_sinamount,data=german_credit,family=binomial(link="logit"))
+summary(mod_logit_sinamount)
+```
+
+Vemos que la pendiente de la variable *duration* ha cambiado y su valor actual después de haber eliminado *amount* es mucho más significativo:
+
+```{r}
+#Con amount
+coef(summary(mod_logit))[5,1:4]
+#Sin amount
+coef(summary(mod_logit_sinamount))[5,1:4]
+```
+
+Vemos que el valor de la $\beta_{\text{duration}}$ ha aumentado y además su p-value asociado ha disminuido, haciendo esta contribución más significativa en el segundo modelo. Cabe esperar que, en este nuevo modelo, la variable *duration* esté canalizando parte de la información omitida acerca del importe de los créditos. Así, **se concluye que se ha introducido un sesgo en la variable *duration* **.
+
+
+
+# 4. Identifica efectos no lineales en la variable duration y amount. Interpreta los nuevos resultados después de meter, en el modelo, estas no linealidades. 
+
+Para identificar efectos no lineales, nos valemos de la función `earth` (MARS) . De esta forma, pueden establecerse puntos de corte en los que la pendiente ($\beta$) cambie para cada variable explicativa.
+
+Existen dos tipos de variaciones en $\beta$:
+
+- **Mismo signo**: cambia el signo de la pendiente, es decir, pasamos de pendiente positiva a negativa o viceversa.
+- **Distinto signo**: la pendiente es más suave o más agresiva, pero con el mismo signo. 
+
+Si le pasamos la fórmula completa de nuestro modelo:
+
+```{r }
+mod_EARTH<-earth(formula=formula,data=german_credit,glm=list(family=binomial(link=logit)),thresh=0.01)
+summary(mod_EARTH)
+```
+Vemos que ha detectado dos puntos de corte:
+
+- **duration**: a partir de una duración de 12 meses, la pendiente cambia aunque mantiene su signo.
+- **amount**: a partir de una cantidad de 2978 unidades monetarias, la pendiente cambia de signo.
+
+
+Podemos representar en histogramas el comportamiento de ambas variables y compararlo a su vez con las predicciones del modelo:
+
+```{r fig.width = 10, message=FALSE}
+tabla1<-dplyr::select(german_credit,response,amount,duration)
+Hist(tabla1,as.numeric(as.character(tabla1[,1])),predicted = predict(mod_logit,german_credit,type="response"),var = tabla1[,2],n=2,breaks = 7)
+Hist(tabla1,response = as.numeric(as.character(tabla1[,1])),predicted = predict(mod_logit,german_credit,type="response"),var = tabla1[,3],n=3,breaks = 8)
+```
+Para ambos casos se observa que la probabilidad promediada en cada intervalo no sigue un crecimiento monótono como sí lo hace la predicción del modelo.
+
+Pasamos ahora a añadir los puntos de corte detectados a un nuevo *dataframe*. Para ello, en primer lugar, nos deshacemos de las variables originales y, a continuación, creamos las 4 nuevas:
+
+```{r}
+german_credit2<-german_credit[,c(-2,-5)]
+german_credit2$amount_hasta_2978<-((2978-german_credit$amount)<0)*0+((2978-german_credit$amount)>=0)*(2978-german_credit$amount)
+german_credit2$amount_despues_2978<-((german_credit$amount-2978)<0)*0+((german_credit$amount-2978)>=0)*(german_credit$amount-2978)
+german_credit2$duration_hasta_12<-((12-german_credit$duration)<0)*0+((12-german_credit$duration)>=0)*(12-german_credit$duration)
+german_credit2$duration_despues_12<-((german_credit$duration-12)<0)*0+((german_credit$duration-12)>=0)*(german_credit$duration-12)
+glimpse(german_credit2)
+```
+
+Con este nuevo *dataframe*, creamos un nuevo ajuste en el que utilizamos todas las variables del *dataset*:
+```{r }
+mod_logit_nl<-glm(response~.,data=german_credit2,family=binomial(link="logit"))
+summary(mod_logit_nl)
+```
+
+Si nos fijamos en las nuevas variables, en primer lugar vemos que al separar *amount* hemos obtenido dos coeficientes con el mismo signo como habíamos previsto. Esto implica un cambio en la pendiente, pero la contribución a la variable respuesta sigue siendo directamente proporcional. Además, en el caso de importes inferiores a 2978 unidades monetarias, vemos que el p-value es superior a 0,05, lo cual indica que la variable ha dejado de ser significativa. Sin embargo, para cantidades altas, el p-value es muy bajo. De aquí se concluye que el importe del crédito es relevante para discernir un crédito malo de uno bueno únicamente cuando los importes son lo suficientemente altos. 
+
+Como veremos en el siguiente ejercicio, en una regresión logística, $p$ aumenta con $x_i$ si $\beta_i>0$ y $p$ disminuye si $\beta_i<0$. Como para el caso del *amount* ambas pendientes son positivas, un aumento en el importe del crédito siempre va a causar un aumento en la probabilidad de impago.
+
+Respecto a la variable duración, vemos que cambia de ser inversamente proporcional a ser directamente proporcional a partir de los 12 meses como ya habíamos anticipado. Esto se traduce en que un aumento en la duración del crédito disminuye la probabilidad de impago (<12 meses). Para duraciones largas, sin embargo, un aumento en la duración se traduce en una mayor probabilidad de ser un crédito "malo".
+
+Si comparamos el modelo con el calculado previamente, vemos que tanto el AIC como la devianza han mejorado al añadir las no linealidades en ambas variables explicativas:
+
+
+```{r}
+#AIC
+AIC(mod_logit)
+AIC(mod_logit_nl)
+#devianza
+mod_logit$deviance
+mod_logit_nl$deviance
+```
+Ambos indicadores miden el grado de ajuste de un modelo y, cuanto menor sean sus valores, mejor será el ajuste. Así, este segundo modelo hemos mejorado la bondad del ajuste respecto al modelo inicial.
+
+# 5. ¿Cuál es la probabilidad estimada media de que el crédito sea malo para mayores de 50 años?  
+
+Para calcular la probabilidad estimada media de que el crédito sea malo ($Y=1$) para personas mayores de 50 años, en primer lugar vamos a partir de la fórmula para nuestra regresión logística:
+
+$$ ln(\frac{p}{1-p})=\sum_i \beta_i x_{i}$$
+
+donde, recordemos, $p$ es la probabilidad de que el crédito sea malo. Si despejamos de aquí la probabilidad, se llega a:
+
+$$ \frac{p}{1-p}=e^{\sum_i \beta_i x_{i}} \to \frac{1}{p}-1=e^{-\sum_i \beta_i x_{i}}$$
+$${p}=\frac{1}{1+e^{-\sum_i \beta_i x_{i}}}$$
+
+Así, por tanto, se deduce que un aumento en $\beta$ causa un aumento en la probabilidad si $\beta>0$. Ahora que ya conocemos la forma de hallar probabilidades con los coeficientes de nuestro modelo, podemos realizar predicciones. Con la función `predict()`, además, no es necesario realizar esta transformación a la hora de calcular probabilidades si se especifica `type="response"`, pues en ese caso se nos estará devolviendo directamente el valor $p$ en el intervalo [0,1].
+
+Para visualizar las predicciones del modelo *logit* que hemos creado, podemos pasarle todo el *dataframe* y comparar las predicciones con los valores reales promediados en distintos intervalos de las variables explicativas que queramos. En este caso en particular, queremos observar la variación con la edad por lo que vamos a representar *age*:
+
+```{r fig.width = 10, message=FALSE}
+tabla1<-dplyr::select(german_credit2,response,age)
+Hist(tabla1,as.numeric(as.character(tabla1[,1])),predicted = predict(mod_logit,german_credit,type="response"),var = tabla1[,2],n=2,breaks = 2)
+```
+<br>
+
+En el histograma vemos dos intervalos divididos por la edad 47. No es exactamente 50, pero sirve para hacernos una idea a priori. Aquí se ve que las predicciones del modelo se ajustan muy bien a los valores reales en ambos intervalos. Además, una tendencia decreciente implica que, a mayor edad, menos probabilidad de tener un crédito "malo". De hecho, la probabilidad media para el grupo edad>47 está en torno a $p_{>47} \approx 0,25<p_{<47} \approx 0,3$.
+
+Si queremos realizar el cálculo exacto de $p_{>50}$, podemos realizarlo calculando las predicciones sobre el *dataset* filtrado para *age*>50:
+
+```{r}
+df_50 <- german_credit2[german_credit2$age>50,]
+pred<-as.matrix(predict(mod_logit_nl,df_50,type="response"))
+mean(pred)
+```
+Vemos que **el promedio de las probabilidades estimadas para personas mayores de 50 coincide con lo que estábamos representando en el histograma: $p_{>50}=0,25$**. Cabe mencionar que, al estar utilizando el *dataframe* original para realizar este cálculo, la distribución de las edades no es uniforme:
+
+```{r}
+table(df_50$age)
+```
+Por tanto, se le está dando más peso a unas edades que a otras. En este caso suponemos que la muestra es representativa del perfil real de los asegurados, por lo que el promedio computado es una representación adecuada del promedio de probabilidades en el intervalo especificado.
+
+
+
+# 6. ¿Crees que hay discriminación de género en este último modelo creado?
+
+
+Para ver si hay discriminación de género, debemos fijarnos en la contribución de la variable *sex* al modelo. Si esta variable es estadísticamente significativa en la modelización, entonces habrá un efecto relevante en el tipo de crédito dependiendo del género del solicitante. 
+
+
+
+Para averiguarlo, procedemos de manera similar al ejercicio 2 y nos fijamos en el p-value asociado. Al tratarse de una variable categórica que toma 4 posibles valores, se ha dividido en 3 variables numéricas binarias:
+
+```{r}
+unique(german_credit2$sex)
+```
+Estos valores, según el diccionario de datos, indican:
+
+- A91 : male (divorced/separated)
+- A92 : female (divorced/separated/married)
+- A93 : male (single)
+- A94 : male (married/widowed)
+
+Es decir, debemos ver si existen diferencias entre la variable A92 y las restantes para ver si efectivamente existe discriminación por género. Recuperamos el valor de las $\beta$ y sus correspondientes p-values:
+
+```{r}
+coef(summary(mod_logit_nl))[27:29,1:4]
+```
+
+Vemos que para *sexA92* se tiene un p-value muy alto, por lo que no puede rechazarse la hipótesis nula y, por tanto, **la $\beta_{\text{female}}$ es compatible con 0 para las mujeres**. Para los hombres, se tiene una variable estadísticamente significativa (*sexA93* con un $p=0,04<\alpha=0,05$) mientras que la otra no lo es. Por consiguiente, ser hombre no es relevante excepto si se es un hombre soltero, en cuyo caso el hecho de serlo contribuye de manera inversamente proporcional. Es decir, **los hombres solteros tienen más probabilidades de tener un crédito "bueno" en nuestro modelo**. 
+
+Para saber si existe verdaderamente discriminación de género en nuestra modelización, habría que comparar la variable "hombres solteros" con la variable "mujeres solteras", pero no se tiene ninguna observación para esta última en el *dataset*, por lo que **no se puede concluir que haya una discriminación de género con la información disponible**, pues la discriminación podría deberse enteramente al estado civil en lugar de al sexo. Si comparamos los datos para mujeres y hombres casados, al ser ambas contribuciones compatibles con 0, tampoco podemos determinar si existe este tipo de discriminación.
+
+
+
+
+

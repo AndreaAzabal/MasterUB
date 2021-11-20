@@ -1,0 +1,537 @@
+---
+title: 'MÓDULO 5: Técnicas Avanzadas de Predicción'
+author: "Andrea Azabal Lamoso"
+date: "31/05/2021"
+output:
+  word_document:
+    toc: yes
+  html_document:
+    toc: yes
+    df_print: paged
+  pdf_document:
+    toc: yes
+subtitle: MODELOS LINEALES GENERALIZADOS
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE)
+library(knitr)
+library(pander)
+library(kableExtra)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggcorrplot)
+suppressPackageStartupMessages(library(tidyverse))
+library(reticulate)
+require(effects)
+library(spatialreg)
+```
+
+
+```{r include=FALSE}
+source("Functions.R")
+```
+
+
+# Carga de datos
+
+Dentro del paquete de R “MPV”, se encuentra una base de datos de gasto en combustible de diferentes coches con una serie de características:
+
+- y: Miles/gallon. 
+
+- x1: Displacement (cubic in). 
+
+- x2: Horsepower (ft-lb). 
+
+- x3: Torque (ft-lb). 
+
+- x4: Compression ratio. 
+
+- x5: Rear axle ratio. 
+
+- x6: Carburetor (barrels).
+
+- x7: No. of transmission speeds. 
+
+- x8: Overall length (in). 
+
+- x9: Width (in). 
+
+- x10: Weight (lb). 
+
+- x11: Type of transmission (1=automatic, 0=manual).
+
+```{r}
+library(MPV)
+df<-table.b3[-c(23,25),]
+```
+
+Comprobamos los datos importados:
+
+```{r}
+glimpse(df)
+```
+
+Vemos que todas las variables están almacenadas como numéricas de tipo *double*.
+
+# 1. Proponed una especificación que a vuestra intuición sea un buen modelo para explicar la variable y en base a las x que tenemos anteriormente. 
+
+La variable que queremos estimar con los datos facilitados en el *dataset* es el número de millas por galón de combustible, es decir, se trata de una variable numérica continua. Por tanto, en primer lugar vamos a realizar un modelo muy simple valiéndonos de todas las variables explicativas de las que disponemos de la siguiente forma:
+
+```{r}
+formula <- as.formula('y~x1+x2+x3+x4+x5+x6+x7+x8+x9+x10+x11')
+```
+
+Con este modelizado, esperamos que la mayoría de las variables contribuyan de forma negativa a la variable respuesta ya que, por ejemplo, cuanto más grande es el vehículo o el motor, más combustible gastará. Es decir, a priori esperamos que la mayoría de coeficientes de regresión sean negativos y un aumento en cada variable explicativa haga que disminuya el número de millas que se pueden recorrer por galón de carburante.
+
+Procedemos a modelizar con una regresión lineal ordinaria:
+
+```{r}
+mod_gauss<-lm(formula=formula,data=df)
+summary(mod_gauss)
+```
+
+
+Fijándonos en los p-values asociados a los parámetros de la regresión, vemos que ninguno de ellos es significativo al nivel $\alpha=0,05$. Es decir, nuestro modelo no es estadísticamente significativo. Además, muchos de los coeficientes de regresión no tienen el signo que esperábamos.
+
+Este hecho nos lleva a sospechar que las variables que estamos utilizando no son las adecuadas, por lo que vamos a representar sus correlaciones:
+
+
+```{r, fig.heigth=10, fig.width=12}
+cr <- cor(df, use="complete.obs")
+ggcorrplot(cr, hc.order = TRUE,type = "lower",lab = TRUE)
+```
+
+Efectivamente, comprobamos que las variables explicativas presentan alta colinealidad entre sí, por lo que debemos omitir alguna de ellas. Antes de ello, sin embargo, vamos a representar sus histogramas para ver si alguna de ellas puede transformarse:
+
+
+```{r message=FALSE, warning=FALSE}
+for (i in 1:ncol(df)){
+pr<-Hist(df,response = df[,1],predicted = 0,var = df[,i],n=i,breaks = 10)
+plot(pr)
+}
+```
+
+En principio no parece que ninguna de ellas necesite ser transformada, por lo que vamos a guiarnos por nuestra intuición para reducir la dimensionalidad. Así, si nos fijamos en el diccionario de datos:
+
+- y: Miles/gallon. 
+- x1: Displacement (cubic in). 
+- x2: Horsepower (ft-lb). 
+- x3: Torque (ft-lb). 
+- x4: Compression ratio. 
+- x5: Rear axle ratio. 
+- x6: Carburetor (barrels). 
+- x7: No. of transmission speeds. 
+- x8: Overall length (in). 
+- x9: Width (in). 
+- x10: Weight (lb). 
+- x11: Type of transmission (1=automatic, 0=manual).
+
+Está claro que x8, x9 y x10 están correlacionadas pues todas ellas hacen referencia a las dimensiones del vehículo. Por otra parte, x1, x2 y x3 hacen referencia a la potencia o capacidad del motor. Asimismo, x5, x7 y x11 están las tres relacionadas con las marchas del coche. 
+
+Ante esta situación, vamos a decidir quedarnos con la variable x1, que es aquella que presenta una mayor colinealidad con el resto de variables. Así, parece que es la variable que está recogiendo la mayor información del modelo. 
+
+Esta variable almacena información sobre la cilindrada del vehículo. Al final, la cilindrada del motor está muy relacionada con el consumo de carburante y además el resto de características del vehículo deben ir acorde a ella (por ejemplo, los coches grandes tienen mayor cilindrada que los pequeños). 
+
+En la representación de x1 frente a y se aprecia que, lógicamente, a mayor cilindrada menos millas pueden recorrerse por galón de combustible. Por tanto, esperamos obtener una pendiente negativa:
+
+```{r}
+formula_reducida <- as.formula('y~x1')
+```
+
+Procedemos a modelizar de nuevo con una regresión lineal ordinaria:
+
+```{r}
+mod_gauss_reducida<-lm(formula=formula_reducida,data=df)
+summary(mod_gauss_reducida)
+```
+
+Efectivamente, $\beta_{x1}<0$ y además es muy significativa, es decir, se rechaza la hipótesis nula y se concluye que la contribución de la variable es muy relevante. Si nos fijamos en el parámetro $R^2$ ajustado, vemos que hemos conseguido mejorarlo con respecto al obtenido en el modelizado con todas las variables.
+
+Vamos a fijarnos en los residuos:
+
+```{r}
+plot(mod_gauss_reducida,2)
+```
+
+Comprobamos que siguen una distribución normal. Para asegurarnos, podríamos realizar el test de Jarque Bera:
+
+
+```{r}
+jarqueberaTest(mod_gauss_reducida$resid)
+```
+
+Según el resultado no podemos rechazar la $H_0$, es decir, los residuos siguen una distribución normal. Sin embargo, este test no es muy fiable para *datasets* tan pequeños como el nuestro, por lo que hay que tener cuidado a la hora de tomar el resultado como válido. En este caso, al estar contrastándolo con la representación gráfica, ambos concuerdan y por tanto asumimos normalidad en los residuos.
+
+
+También podemos averiguar si los residuos están o no autocorrelacionados mediante el test de *Durbin Watson*:
+
+```{r}
+dwtest(mod_gauss_reducida)
+```
+
+Al obtenerse $p=0,205>\alpha=0,05$, se concluye que no hay correlación en los residuos del modelo.
+
+
+Por último, comprobamos si estos son homocedásticos mediante el test de *Breusch Pagan*:
+
+```{r }
+bptest(mod_gauss_reducida)
+```
+
+En este caso, vemos que sí que hay heterocedasticidad  en los residuos del modelo.
+
+Podemos intentar mejorar la especificación del modelo tratando de detectar no linealidades. Si utilizamos la función `earth()`:
+
+```{r }
+modelo_earth<-earth(formula = formula_reducida,data =df,thresh=0.1)
+summary(modelo_earth)
+```
+
+Nos está indicando que existe una no linealidad en la variable $x_1$. En concreto, se tiene un cambio de pendiente. Es decir, las millas por galón de carburante aumentan con la cilindrada hasta llegar a los 225 $cm^3$, a partir de los cuales disminuye el número de millas que pueden recorrerse.
+
+Si creamos las nuevas variables:
+
+```{r}
+df$x1_hasta_225<-((225-df$x1)<0)*0+((225-df$x1)>=0)*(225-df$x1)
+df$x1_desde_225<-((df$x1-225)<0)*0+((df$x1-225)>=0)*(df$x1-225)
+```
+
+Y aplicamos la nueva fórmula:
+
+```{r}
+formula_nl <- as.formula('y~x1_hasta_225+x1_desde_225')
+```
+
+Procedemos a modelizar de nuevo con una regresión lineal ordinaria:
+
+```{r}
+mod_gauss_nl<-lm(formula=formula_nl,data=df)
+summary(mod_gauss_nl)
+```
+
+Observamos el cambio de pendiente que habíamos detectado. Además, la bondad del ajuste ha mejorado ya que $\bar{R}^2=0,8$ ha aumentado con respecto a la especificación anterior. Sin embargo, no hay que precipitarse a la hora de elegir esta especificación, pues el estimador $\bar{R}^2$ sigue siendo sesgado y podría darse el caso de que el limitado número de observaciones en nuestro *dataset* nos esté permitiendo realizar un buen ajuste explicativo pero no un buen predictor.
+
+Si realizamos las mismas comprobaciones que para el modelo previo:
+
+- Residuos normales
+
+```{r}
+plot(mod_gauss_nl,2)
+```
+
+Comprobamos que siguen una distribución que puede considerarse normal. Para asegurarnos, realizamos el test de Jarque Bera:
+
+```{r}
+jarqueberaTest(mod_gauss_nl$resid)
+```
+
+No podemos rechazar la $H_0$, es decir, los residuos siguen una distribución normal.
+
+
+- Residuos autocorrelacionados:
+
+```{r}
+dwtest(mod_gauss_nl)
+```
+
+No existe autocorrelación entre los residuos.
+
+- Residuos homocedásticos:
+
+```{r}
+bptest(mod_gauss_nl)
+```
+
+Con este segundo modelo hemos conseguido deshacernos de la heterocedasticidad en los residuos.
+
+# 2. Utilizar la técnica STEPWISE para elegir el modelo de tal forma que minimicemos el BIC. 
+
+Con el objetivo de averiguar qué modelización es la más adecuada para el *dataset*, vamos a utilizar el método de selección de variables *Stepwise*, el cual irá añadiendo o quitando variables y computando el grado de ajuste de cada uno de los modelos en función del indicador que seleccionemos. 
+
+
+En este apartado, vamos a computar el BIC (Bayesian Information Criteria) para cada una de las combinaciones de variables posibles y nos quedaremos con el modelo que devuelva un valor inferior. 
+
+- **Método *backward***: empezamos con todas las variables (fórmula completa) y quitamos una en cada iteración.
+
+```{r}
+formula_completa <- formula
+modelo_completo <- glm(formula = formula_completa, data = df, family=gaussian)
+```
+
+Para computar el BIC basta con especificar el parámetro `k=log(nrow(df))` en la función `stepAIC`:
+
+```{r }
+backward<-stepAIC(modelo_completo,
+                  trace=FALSE,
+                  direction="backward",
+                  k=log(nrow(df))) #con el log estoy sacando el BIC
+backward$anova
+```
+
+En este caso el mejor modelo es el que incluye las variables x5, x8 y x10. Si lo generamos:
+
+```{r}
+formula_backward<-as.formula("y ~ x5 + x8 + x10")
+```
+
+
+```{r}
+mod_bw<-lm(formula=formula_backward,data=df)
+summary(mod_bw)
+```
+
+Vemos que la variable explicativa más significativa es x10, la cual indica el peso del vehículo. A mayor peso, menos distancia puede recorrerse con la misma cantidad de carburante, por lo que es lógico que obtengamos $\beta_{x_{10}}<0$. El coeficiente de determinación ajustado para este modelo es $\bar{R}^2=0,78$, lo cual indica una mejora con respecto al primer modelizado pero  no respecto al segundo (introduciendo no linealidades).
+
+Si nos fijamos en los residuos:
+
+    - Residuos normales
+
+```{r}
+plot(mod_bw,2)
+```
+
+Comprobamos que siguen una distribución que puede considerarse normal. Para asegurarnos, realizamos el test de Jarque Bera:
+
+```{r}
+jarqueberaTest(mod_bw$resid)
+```
+
+No podemos rechazar la $H_0$, es decir, los residuos siguen una distribución normal.
+
+
+    - Residuos autocorrelacionados:
+
+```{r}
+dwtest(mod_bw)
+```
+
+No existe autocorrelación entre los residuos.
+
+    - Residuos homocedásticos:
+
+```{r}
+bptest(mod_bw)
+```
+
+Con este nuevo modelo hemos conseguido deshacernos de la heterocedasticidad en los residuos, mejorando el resultado obtenido con el modelo no lineal.
+
+
+- **Método *forward***: vamos añadiendo una variable en cada iteración.
+  
+```{r warning=FALSE}
+modelo_vacio<-lm(formula =y~1,data = df,family=gaussian)
+forward<-stepAIC(modelo_vacio,trace=FALSE,direction="forward",scope=formula_completa,k=log(nrow(df)))
+forward$anova
+```
+
+En este caso, estamos obteniendo el mismo modelo especificado en el ejercicio 1, por lo que no es necesario volver a generarlo.
+
+- **Método híbrido**: una combinación de los anteriores. 
+
+```{r warning=FALSE}
+both<-stepAIC(modelo_vacio,trace=FALSE,direction="both",scope=formula_completa,k=log(nrow(df)))
+both$anova
+```
+Se llega al mismo resultado que para el método *forward*.
+
+
+# 3. Programad vuestro propio STEPWISE (Backward o Forward) para decidir cuál sería el mejor modelo minimizando la U de Theil.
+
+La función utilizada en el apartado 2 utiliza por defecto el indicador AIC como criterio de selección de variables. En este apartado vamos a minimizar otro indicador, la U de Theil, para seleccionar las variables del modelo. Además, se introduce el parámetro $0.05 \cdot m$, siendo $m$ el número de variables utilizadas.
+
+$$U = \frac{(\frac{1}{n} \sum(y - \hat{y})^2)^{0.5}}{(\frac{1}{n} \sum(y^2))^{0.5} + (\frac{1}{n} \sum(\hat{y}^2))^{0.5} } + 0,05 \times m$$
+
+Así, implementamos un método *forward* en el que empezamos con un modelo vacío y vamos añadiendo las variables que minimizan la función en cada iteración:
+
+```{r}
+#Inicializo las variables
+n <- nrow(df)
+m <- ncol(df) - 3 #no tengo en cuenta x1 no lineal
+m_name <- colnames(dplyr::select(df,-y, -x1_hasta_225,-x1_desde_225))
+old_m <- rep(NA,length(m_name))
+modelos <- data.frame()
+formula_min <- "" 
+k=0.05
+
+
+#Bucle para recorrer las posibles variables
+for (i in 1:m) {
+  
+  U <- c(0)
+  ncol <- length(m_name)
+  
+  for (m_var in 1:ncol){
+    
+    remaining_var <- paste0(m_name[m_var], collapse="+")
+    formula_str <- remaining_var
+    if (formula_min!="") {
+      formula_str <- paste(formula_min, remaining_var, sep = "+")
+    }
+    
+    #Creo un modelo
+    formula_i <- as.formula(paste0("y~",formula_str))
+    mod_i <- glm(formula=formula_i, data=df, family = gaussian)
+    m_num <- length(mod_i$coefficients) - 1 
+    pred <- predict(mod_i,df,type="response")
+    
+    #Formula a minimizar
+    U[m_var] <- (sum((df$y - pred)**2))**0.5 / ((sum(df$y**2))**0.5 + (sum(pred**2))**0.5 ) + k * m_num
+  }
+
+  #Almaceno el resultado
+  Umin <- which.min(U)
+  old_m[i] <- m_name[Umin]
+  m_name <- m_name[-Umin]
+  formula_min <- paste0(old_m[(!is.na(old_m))], collapse="+")
+  
+  modelos[i,1] <- formula_min
+  modelos[i,2] <- U[Umin]
+}
+
+#Resultado
+modelos[which.min(modelos$V2),]
+```
+Vemos que, para un parámetro de $0,05$, llegamos al mismo resultado que en los apartados anteriores: $y \approx \beta_1x_1$.
+
+
+# 4. Probad a variar el 0.05 para elegir un modelo según vuestra visión. 
+
+Ahora vamos a ir variando el parámetro $k$ que multiplica al número de variables del modelo:
+
+
+$$U(k) = \frac{(\frac{1}{n} \sum(y - \hat{y})^2)^{0.5}}{(\frac{1}{n} \sum(y^2))^{0.5} + (\frac{1}{n} \sum(\hat{y}^2))^{0.5} } + k \times m$$
+Como hay que minimizar la función $U$, a mayor $k$ más penaliza el hecho de tener un alto número de variables $m$ en nuestro modelo.
+
+Es lógico, por tanto, que para $k<<1$ el hecho de tener muchas variables no penalice en absoluto y, por tanto, se obtenga como resultado un alto número de variables en el selector:
+
+-  $k=0,001$:
+```{r}
+#Inicializo las variables
+n <- nrow(df)
+m <- ncol(df) - 3 #ojo
+m_name <- colnames(dplyr::select(df,-y, -x1_hasta_225,-x1_desde_225))
+old_m <- rep(NA,length(m_name))
+modelos <- data.frame()
+formula_min <- "" 
+k=0.001
+
+#Bucle para recorrer las posibles variables
+for (i in 1:m) {
+  
+  U <- c(0)
+  ncol <- length(m_name)
+  
+  for (m_var in 1:ncol){
+    
+    remaining_var <- paste0(m_name[m_var], collapse="+")
+    formula_str <- remaining_var
+    if (formula_min!="") {
+      formula_str <- paste(formula_min, remaining_var, sep = "+")
+    }
+    
+    #Creo un modelo
+    formula_i <- as.formula(paste0("y~",formula_str))
+    mod_i <- glm(formula=formula_i, data=df, family = gaussian)
+    m_num <- length(mod_i$coefficients) - 1 
+    pred <- predict(mod_i,df,type="response")
+    
+    #Formula a minimizar
+    U[m_var] <- (sum((df$y - pred)**2))**0.5 / ((sum(df$y**2))**0.5 + (sum(pred**2))**0.5 ) + k * m_num
+  }
+
+  #Almaceno el resultado
+  Umin <- which.min(U)
+  old_m[i] <- m_name[Umin]
+  m_name <- m_name[-Umin]
+  formula_min <- paste0(old_m[(!is.na(old_m))], collapse="+")
+  
+  modelos[i,1] <- formula_min
+  modelos[i,2] <- U[Umin]
+}
+
+#Resultado
+modelos[which.min(modelos$V2),]
+```
+
+El modelo más óptimo en este caso tendría 9 variables de las 11 posibles.
+
+Lo contrario ocurre para $k$ lo suficientemente grandes:
+
+
+- $k=0.01$:
+
+```{r}
+#Inicializo las variables
+n <- nrow(df)
+m <- ncol(df) - 3 #ojo
+m_name <- colnames(dplyr::select(df,-y, -x1_hasta_225,-x1_desde_225))
+old_m <- rep(NA,length(m_name))
+modelos <- data.frame()
+formula_min <- "" 
+k=0.01
+
+#Bucle para recorrer las posibles variables
+for (i in 1:m) {
+  
+  U <- c(0)
+  ncol <- length(m_name)
+  
+  for (m_var in 1:ncol){
+    
+    remaining_var <- paste0(m_name[m_var], collapse="+")
+    formula_str <- remaining_var
+    if (formula_min!="") {
+      formula_str <- paste(formula_min, remaining_var, sep = "+")
+    }
+    
+    #Creo un modelo
+    formula_i <- as.formula(paste0("y~",formula_str))
+    mod_i <- glm(formula=formula_i, data=df, family = gaussian)
+    m_num <- length(mod_i$coefficients) - 1 
+    pred <- predict(mod_i,df,type="response")
+    
+    #Formula a minimizar
+    U[m_var] <- (sum((df$y - pred)**2))**0.5 / ((sum(df$y**2))**0.5 + (sum(pred**2))**0.5 ) + k * m_num
+  }
+
+  #Almaceno el resultado
+  Umin <- which.min(U)
+  old_m[i] <- m_name[Umin]
+  m_name <- m_name[-Umin]
+  formula_min <- paste0(old_m[(!is.na(old_m))], collapse="+")
+  
+  modelos[i,1] <- formula_min
+  modelos[i,2] <- U[Umin]
+}
+
+#Resultado
+modelos[which.min(modelos$V2),]
+```
+Para valores superiores a $k=0,01$, siempre vamos a llegar al mismo resultado $y \approx \beta_1 x_1$, pues la mejora en la especificación que pudiéramos obtener no compensa la penalización introducida al aumentar $m$. 
+
+Se concluye, por tanto, que la corrección añadida a la U de Theil hace que el selector de variables sea muy sensible a la dimensionalidad del modelo. Por tanto, elegir un valor de $k$ apropiado es muy importante ya que podemos encontrarnos con problemas de *overfitting* si $k$ es muy bajo o problemas de *underfitting* si $k$ es muy alto. 
+
+El valor apropiado será uno en el rango $0,001 < k < 0,01$, ya que es donde de verdad entra en juego la bondad del ajuste y no solo la penalización por añadir/eliminar variables del modelo.
+
+
+# 5. En función de los modelos anteriores, ¿cuál de ellos en el caso de que difieran recomendaríais?
+
+
+Como hemos argumentado, el modelo más simple $y \approx \beta_1 x_1$ nos proporciona una buena bondad de ajuste $\bar{R}^2=0,7521$ pero tiene el problema de la presencia heterocedasticidad en los residuos. Es decir, este modelo explica muy bien los datos pero probablemente no sea un buen predictor.
+
+El problema de la heterocedasticidad lo conseguimos resolver si rompemos la linealidad en la variable $x_1$. Así, el modelo que obtenemos tras realizar esta transformación cumple todas las hipótesis de un modelo de regresión lineal. Para esta especificación se alcanza $\bar{R}^2=0,803$. 
+
+Lo mismo ocurre con el modelizado tras aplicar el método *stepwise* $y \approx  \beta_5 x_5 + \beta_8 x_8 + \beta_{10} x_{10}$, el cual también cumple todas los requisitos para los residuos y además consigue mejorar la homocedasticidad respecto al modelo anterior. Además, se tiene $\bar{R}^2=0.7808$. La pega de este modelo es que, como ya vimos en el primer apartado, al estar todas las variables del *dataset* muy correlacionadas, la hipótesis de independencia entre las variables explicativas es débil en este caso.
+
+El primer modelo queda por tanto descartado debido a los problemas que presenta con los residuos. Si tuviéramos que elegir entre los dos restantes, fijándonos en el coeficiente de determinación ajustado, seleccionaríamos el modelo en el que hemos roto la linealidad en la variable $x_1$. Es decir, este modelo explica mejor la variable respuesta que el modelo $y \approx \beta_5 x_5 + \beta_8 x_8 + \beta_{10} x_{10}$. Sin embargo, que explique mejor no significa que tengamos mejores predicciones. En ese caso, habría que ver cómo se comportan ambos modelos bajo un nuevo *dataset* de testing. Cabe esperar que, al arrojar este último modelo mejores resultados en la homocedasticidad de los residuos, sea un mejor predictor.
+
+Por tanto, el modelo a elegir dependerá de nuestro objetivo. Si lo que buscamos es explicar lo mejor posible la variable respuesta $y$, nos quedaremos con un modelo $y \approx \beta x_1(<225) + \beta 'x_1(>225)$. Si lo que buscamos, en cambio, es un mejor predictor, entonces cabría esperar que la mejor especificación fuera $y \approx  \beta_5 x_5 + \beta_8 x_8 + \beta_{10} x_{10}$.
+

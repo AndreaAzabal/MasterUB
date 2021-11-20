@@ -1,0 +1,474 @@
+---
+title: 'MÓDULO 5: Técnicas Avanzadas de Predicción'
+author: "Andrea Azabal Lamoso"
+date: "10/05/2021"
+output:
+  word_document:
+    toc: yes
+  html_document:
+    toc: yes
+    df_print: paged
+  pdf_document:
+    toc: yes
+subtitle: MODELO LINEAL GAUSSIANO. ELEMENTOS BÁSICOS
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE)
+library(knitr)
+library(pander)
+library(kableExtra)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggcorrplot)
+suppressPackageStartupMessages(library(tidyverse))
+library(reticulate)
+```
+
+
+```{r include=FALSE}
+source("Functions.R")
+```
+
+# Carga de datos
+
+En primer lugar cargamos la librería `car` y nos vamos a quedar con el *dataframe* Salaries:
+
+```{r}
+library(car)
+data(Salaries)
+class(Salaries)
+```
+Podemos ver a continuación, gracias a la función `summary()`, un resumen de las variables contenidas en el *dataset*:
+```{r}
+summary(Salaries)
+```
+Por tanto, nos fijamos en que hay 3 variables categóricas y 3 numéricas, dos de las cuales son de tipo *double* y una de tipo entero. Además, cabe mencionar que no se detecta ninguna inconsistencia ni ningún valor nulo en el conjunto de datos.
+
+El diccionario de datos es el siguiente:
+
+- rank: 3 niveles de cargos de profesor. 
+- discipline: tipo de enseñanza que imparte. 
+- yrs.since.phd: años desde el doctorado. 
+- yrs.service: años de servicio. 
+- sex: género. 
+- salary: salario en dólares. 
+
+# 1. Propón la regresión para explicar el salario a través de los años de servicio y los años desde el doctorado. Justifica si era lo esperado o no. Si difiere, justificar la razón de dicho diferimiento. Obtén la suma de residuos al cuadrado, el coeficiente de determinación y el coeficiente de determinación corregido del modelo. 
+
+Antes de comenzar con el modelizado, vamos a definir la ecuación matemática que vamos a aplicar al conjunto de datos. Al tratarse de una regresión lineal, la fórmula a aplicar es:
+
+$$\hat{Y}=X\beta$$
+donde se ha utilizado la notación matricial en la que $\hat{Y}$ es la matriz $n \ \text{x} \ 1$ que queremos explicar, mientras que $X$ es la matriz $n \ \text{x} \ p$ de variables explicativas y $\beta$ la matriz $p \ \text{x} \ 1$ de parámetros.
+
+Queremos valernos de nuestro *dataset* para hallar una explicación del salario del profesorado universitario, en este caso únicamente valiéndonos de las variables *yrs.since.phd*, la cual hace referencia al número de años transcurridos desde la finalización del doctorado, y *yrs.service*, es decir, los años trabajados. En principio, se espera que ambas variables estén relacionadas pues, a más tiempo transcurrido desde el doctorado, más posibilidades hay de tener una experiencia laboral más amplia. Además, cuanta mayor experiencia se posea, mayor debería ser el salario. 
+
+Si modelizamos, por tanto, nuestro conjunto de datos, se tiene:
+
+$$ \text{Salary} = \beta_0 + \beta_1 \cdot \text{yrs.since.phd} + \beta_2 \cdot \text{yrs.service}$$
+
+donde esperamos que los parámetros cumplan $\beta_1>0$ y $\beta_2>0$, esto es, que el salario sea directamente proporcional a ambas variables y que un aumento de cualquiera de ellas cause un aumento en la variable respuesta.
+
+Además, a la hora de realizar este tipo de ajuste lineal, debemos asegurarnos de que el *dataset* cumple con las hipótesis pertinentes:
+
+- Hay una relación lineal entre las variables. Si representamos las variables cuantitativas obtenemos las siguientes gráficas:
+
+<br>
+
+```{r, warning=FALSE, message=FALSE}
+plot(Salaries$yrs.since.phd, Salaries$salary, 
+     main="Relación entre salario y años desde el doctorado", 
+     ylab="Salario",
+     xlab="Años desde el doctorado") 
+```
+
+```{r, warning=FALSE, message=FALSE}
+plot(Salaries$yrs.service, Salaries$salary, 
+     main="Relación entre salario y años de servicio", 
+     ylab="Salario",
+     xlab="Años de servicio") 
+```
+
+<br>
+
+Como se puede comprobar, no parece que exista una gran linealidad entre el salario y los años desde el doctorado o los años de servicio, aunque la relación es claramente proporcional en ambos casos. Así, en principio no esperamos que nuestro modelo resulte en un ajuste óptimo.
+
+- No hay colinealidad perfecta entre variables. 
+
+```{r  fig.align = "center"}
+tabla1<-dplyr::select(Salaries,salary,yrs.since.phd,yrs.service)
+cr <- cor(tabla1, use="complete.obs")
+ggcorrplot(cr, hc.order = TRUE,type = "lower",lab = TRUE)
+```
+<br>
+Comprobamos que hay una gran colinealidad entre las variables **yrs.since.phd** y **yrs.service**, pero al no ser perfecta, el sistema de ecuaciones tiene solución.
+
+- La muestra es independiente.
+
+- Los residuos del modelo deben cumplir una serie de condiciones: estar distribuidos uniformemente, ser independientes de las variables explicativas y entre sí y, además, ser homocedásticos (varianza constante). Existen diversos tests que pueden aplicarse a los residuos de un modelo para corroborar estas hipótesis. 
+
+
+Una vez tenemos claro el ajuste que queremos realizar, procedemos a definirlo:
+
+```{r }
+formula<-as.formula('salary~yrs.since.phd+yrs.service')
+formula
+```
+
+A continuación, simplemente basta con aplicar la formulación matemática al *set* de datos para crear el modelo. Para ello, nos valemos de la función `lm`, la cual nos proporcionará los parámetros del ajuste obtenidos mediante el método de mínimos cuadrados.
+
+Por tanto, aplicando la fórmula:
+```{r}
+modelo1<-lm(formula = formula, data = Salaries)
+pander(summary(modelo1))
+```
+
+Para interpretar el modelo y obtener una estimación de la variable respuesta *salary*, basta con sumar el producto de cada $\beta_i$ (*Estimate* en la tabla) por su variable correspondiente. Como hemos comentado, los parámetros positivos, $\beta_i > 0$, indican una relación directamente proporcional, es decir, si la variable aumenta, causará un incremento del salario. Lo contrario ocurre para los coeficientes negativos, $\beta_i <0$. 
+
+En este caso, vemos que existe una relación directamente proporcional con la variable *yrs.since.phd* e inversamente proporcional con *yrs.service*. Esto choca con el planteamiento realizado previamente, ya que se esperaba que ambos parámetros fueran positivos.
+
+Asimismo, vemos que no solo hemos obtenido los parámetros $\beta_i$ del ajuste, sino que también nos ha devuelto los valores para el error estándar residual, el coeficiente de determinación y el coeficiente de determinación corregido del modelo.
+
+A partir de los residuos del modelo, podemos computar la suma de los cuadrados de los errores:
+```{r}
+#Sum of Squared Errors
+SSE=sum(modelo1$residuals**2)
+SSE
+```
+Sin embargo, es más útil obtener el error estándar residual (RSE), el cual ya se está devolviendo en la tabla y que se calcula a partir de la suma de los cuadrados de los residuos, teniendo en cuenta los grados de libertad del modelo:
+
+```{r}
+#Residual Standard error
+k=length(modelo1$coefficients)-1 #Resto 1 para ignorar beta_0
+n=length(modelo1$residuals)
+sqrt(SSE/(n-(1+k)))
+```
+De esta forma se llega a un estimador insesgado. Cuanto menor sea este valor, más se ajusta el modelo a los datos.
+
+Otra forma de averiguar la bondad del ajuste es mediante el coeficiente de determinación $R^2$, cuyo valor indica la proporción de variabilidad en la variable endógena explicada por el modelo en relación a la variabilidad total. Por tanto, toma valores en el intervalo $[0,1]$ y cuanto más próximo a 1, mayor será la proporción de variabilidad en la variable respuesta explicada por el modelo, es decir, mejor será el ajuste:
+
+```{r}
+#R-Squared
+n=length(Salaries$salary)
+SSyy=sum((Salaries$salary-mean(Salaries$salary))**2)
+1-SSE/SSyy
+```
+Vemos que el valor en este modelo es bastante bajo, inferior a $0,2$, por lo que se trata de un ajuste muy pobre. Esto podría deberse a que el modelo lineal no es adecuado o que no hemos tenido en cuenta variables relevantes.
+
+Por último, se puede obtener el coeficiente de determinación ajustado, que no es más que el $R^2$ que ya hemos calculado, pero ajustándolo al número de grados de libertad de manera que es un estimador menos sesgado (sigue sin ser insesgado). A medida que se añaden variables a un modelo, el coeficiente de determinación aumenta aunque las variables que incluyamos no sean significativas, por lo que este estimador $\bar{R^2}$ es conveniente a la hora de comparar distintos modelos, ya que este no aumenta a no ser que la adición de la nueva variable produzca una mejora sustancial superior a la que se esperaría azarosamente.
+
+
+```{r}
+#Adjusted R-Squared
+1-(SSE/SSyy)*(n-1)/(n-(k+1))
+```
+Se tiene que $\bar{R^2}< R^2$, como es lógico, aunque no difieren mucho el uno del otro. 
+
+Ahora vamos a representar las predicciones del modelo y compararlas con los valores reales del salario que tenemos en nuestro *dataset* para las dos variables explicativas que hemos seleccionado en la fórmula:
+
+- Años desde el doctorado:
+
+```{r, message=FALSE, fig.width = 9, fig.heigth = 12}
+Hist(tabla1,response = tabla1[,1],predicted = predict(modelo1,tabla1),var = tabla1[,2],n=2,breaks = 10)
+```
+
+<br>
+
+El valor en rojo es el valor real mientras que la línea azul representa nuestro ajuste lineal. Vemos que ambas difieren para todos los intervalos, siendo la discrepancia más notable a partir de 45 años desde el doctorado (hecho razonable pues se tienen muchas menos observaciones para dichos intervalos). 
+
+- Años de servicio:
+
+```{r, message=FALSE, fig.width = 9, fig.heigth = 12}
+Hist(tabla1,response = tabla1[,1],predicted = predict(modelo1,tabla1),var = tabla1[,3],n=3,breaks = 10)
+```
+
+<br>
+
+Al igual que en el caso anterior, la predicción no se ajusta bien al valor real para ninguno de los intervalos, aunque en este caso hay una importante diferencia para el rango (48,54] años de servicio. El hecho de que haya una "cola" bastante larga hace pensar que tras una transformación para esta variable podríamos mejorar la bondad del ajuste.
+
+Por los motivos expuestos hasta ahora, concluimos que el modelo no está realizando un buen ajuste. Es decir, no estamos estimando correctamente el salario con este modelo lineal, por lo que **no se está llegando al resultado esperado**. Es razonable, puesto que únicamente **estamos utilizando dos variables explicativas que además presentan una gran colinealidad y para las cuales no se aprecia una gran linealidad con el salario**. **La colinealidad entre las dos variables es probablemente el motivo por el cual las observaciones para los años de servicio no están contribuyendo con el signo esperado**.
+
+Se concluye, por tanto, que el modelo utilizado no es óptimo y habría que ver si podría mejorarse añadiendo y/o modificando las variables explicativas. En concreto, podríamos eliminar la variable *yrs.service* y quedarnos solamente con *yrs.since.phd*:
+
+```{r }
+formulav2<-as.formula('salary~yrs.since.phd')
+modelov2<-lm(formula = formulav2, data = Salaries)
+pander(summary(modelov2))
+```
+
+Si solo utilizamos esta variable para el modelizado, no perdemos mucha explicación de la variable respuesta aunque el $R^2$ sí que ha disminuido ligeramente. Aun así, deshacernos de *yrs.service* parece una opción razonable pues nos estamos deshaciendo principalmente de información redundante. Otra opción podría ser combinar las dos variables que presentan mayor colinealidad en una nueva.
+
+# 2. Incluye el género en el modelo. Valora la nueva suma de residuos al cuadrado. 
+
+Si modificamos la fórmula definida en el apartado 1 y añadimos la variable categórica *sex*:
+
+```{r }
+# Añado nueva variable
+formula2<-as.formula('salary~yrs.since.phd+yrs.service+sex')
+formula2
+```
+Realizamos de nuevo un ajuste con la misma función `lm`:
+
+```{r}
+modelo2<-lm(formula = formula2, data = Salaries)
+pander(summary(modelo2))
+```
+<br>
+
+Al tener la variable *sex* dos posibles valores, *male* y *female*, el modelo de regresión ha seleccionado uno de ellos para realizar el ajuste, convirtiendo la variable en dicotómica. Si se hubiera quedado con ambos valores, el sistema de ecuaciones no tendría solución pues una de las variables sería combinación lineal de la otra, es decir, habría una colinealidad perfecta entre ellas.
+
+La interpretación de los parámetros en este caso es la siguiente:
+
+- Para los hombres, debe calcularse el salario como:
+
+$$ \text{Salary}_{\text{male}} = \beta_0 + \beta_1 \cdot \text{yrs.since.phd} + \beta_2 \cdot \text{yrs.service} + \beta_3$$
+
+- Para las mujeres, en cambio:
+
+$$ \text{Salary}_{\text{female}} = \beta_0 + \beta_1 \cdot \text{yrs.since.phd} + \beta_2 \cdot \text{yrs.service}$$
+
+Es decir, el coeficiente $\beta_3$ nos da una idea de la diferencia del salario en promedio entre hombres y mujeres. Según este modelizado, los hombres cobrarían en promedio 8457 unidades monetarias más que las mujeres, independientemente de los años de servicio o de los años desde el doctorado.
+
+Fijándonos en los parámetros del modelo, y, en particular, en el coeficiente de determinación ajustado, vemos que los valores que se obtienen son muy similares al anterior modelo realizado. Asimismo, la suma de los residuos al cuadrado da:
+
+```{r}
+#Sum of Squared Errors
+SSE=sum(modelo2$residuals**2)
+SSE
+```
+
+La cual ha disminuido sensiblemente, pero no es un cambio significativo. 
+
+# 3. Justifica, a través del coeficiente de determinación corregido, si el género es una variable a tener en cuenta para mejorar el modelo de predicción del salario.
+
+Como ya hemos argumentado, no parece que el modelo añada una mejora sustancial respecto al obtenido en el apartado 1. Así, si nos fijamos en los valores para el coeficiente de determinación en ambos casos, se tiene que al introducir la nueva variable en el modelo se ha conseguido una mejora en $R^2_2=0.1951>R^2_1=0.1883$, por lo que podría parecer que hemos mejorado ligeramente el ajuste. Sin embargo, ya hemos argumentado que una mejora en $R^2$ al añadir una nueva variable no quiere decir que la nueva variable sea significativa, ya que se trata de un estimador sesgado.
+
+Si queremos comparar entre modelos, como ya se ha argumentado, es conveniente utilizar el coeficiente de determinación ajustado, el cual para el segundo modelo toma un valor de $\hat{R^2_2}=0.189$, que no difiere apenas del primero $\hat{R^2_1}=0.1842$. Se concluye, por tanto, que la variable *sex*, afortunadamente, no es determinante a la hora de explicar el salario del profesorado universitario.
+
+# 4. Indica cómo incrementa el salario ante una variación en los años de servicio.
+
+El coeficiente que acompaña a la variable explicativa es el que nos indica cómo afecta la variación de la misma a la variable respuesta (*salary*).
+
+- Modelo 1:
+
+En el primer modelo, se tiene $\beta_{\text{yrs.service}}=-629,1<0$. Esto implica que, si el resto de variables se mantienen constantes, al aumentar un año de servicio, el salario disminuye en promedio $629,1$ unidades monetarias. Es decir, la relación entre ambas variables en el modelo es lineal e inversamente proporcional.
+
+Si calculamos los intervalos de confianza:
+
+```{r}
+confint(modelo1, parm="yrs.service", level=0.95)
+```
+
+Esto nos indica que en el 95% de los casos, el valor de la pendiente para la variable *yrs.service* estará entre estos dos valores. Es decir, por cada año de servicio, el salario decrecería entre 1129 y 128 unidades monetarias. Como vemos, es un intervalo muy amplio, aunque el signo del parámetro es siempre negativo y su valor incompatible con 0.
+
+- Modelo 2:
+
+En este segundo modelo, se tiene, de manera similar al Modelo 1, $\beta_{\text{yrs.service}}=-649,8<0$. Análogamente, por tanto, al aumentar un año de servicio, el salario disminuye en promedio $649,8$ unidades monetarias. En este modelo también se tiene una relación inversamente proporcional.
+
+```{r}
+confint(modelo2, parm="yrs.service", level=0.95)
+```
+
+Otra vez, nos indica que en el 95% de los casos, el valor de la pendiente para la variable *yrs.service* en este segundo modelo estará entre estos dos valores. Vemos que es un intervalo igual de amplio que en el primer modelo y que la pendiente del parámetro es siempre negativa.
+
+
+# 5. Indica cómo afecta a las betas del modelo si dividimos el salario por mil para expresarlo en miles. 
+
+Definimos la nueva fórmula:
+
+```{r }
+formula3<-as.formula('salary/1000~yrs.since.phd+yrs.service+sex')
+formula3
+```
+
+Y realizamos un nuevo ajuste lineal:
+```{r}
+modelo3<-lm(formula = formula3, data = Salaries)
+pander(summary(modelo3))
+```
+
+<br>
+
+Se puede observar que los valores de los parámetros $\beta_i$ son los mismos obtenidos en el modelo previo pero con la transformación aplicada, es decir, $\dot{\beta}=\beta/1000$ y que todos los parámetros conservan sus signos. Lo mismo sucede con la suma de residuos al cuadrado y el error estándar. El resto de estadísticos mantienen sus valores, pues el ajuste de regresión es el mismo y no se ha modificado la bondad del ajuste.
+
+Esto es debido a que hemos aplicado una **transformación lineal**. De esta forma, la respuesta a la pregunta 4 con este modelo sería idéntica a las respuestas ya expuestas previamente, simplemente habría **cambiado la escala en la que estamos calculando el salario resultante**.
+
+
+# 6. Con el modelo anterior, teniendo en cuenta años de servicio y años desde el doctorado, realiza el mismo modelo, pero con el logaritmo neperiano del salario. Indica si se mantienen los signos de las betas obtenidas. 
+
+En este caso, vamos a aplicar la función `log()` a la variable *salary*, la cual computa el logaritmo natural:
+```{r }
+# Establecemos la formula para  más adelate modelizar. 
+formula4<-as.formula('log(salary)~yrs.since.phd+yrs.service')
+formula4
+```
+
+
+Generando un nuevo modelo de regresión lineal, obtenemos los nuevos parámetros:
+```{r}
+modelo4<-lm(formula = formula4, data = Salaries)
+pander(summary(modelo4))
+```
+
+Comparando con las $\beta$ del Modelo 1, vemos que las tres han conservado sus signos pero no sus valores. Es decir, las relaciones proporcionales entre las variables explicativas y la variable respuesta no se han invertido. Como veremos a continuación, esto implica que un aumento en una variable explicativa sigue causando un aumento en la variable respuesta si  $\beta_i>0$, aunque ahora no es tan fácil determinar exactamente el aumento, pues únicamente podemos evaluarlo en términos de porcentajes. Es decir, ya no es tan fácil interpretar el modelo.
+
+Por otra parte, en este caso no podemos comparar el error estándar residual con los modelos anteriores puesto que depende de la escala y, al haber realizado una transformación, la escala ha sido modificada. Lo que sí puede compararse es el coeficiente de determinación ajustado, el cual es independiente de la escala. Si nos fijamos en este dato, vemos que es ligeramente superior al que obtuvimos en el ejercicio 1, es decir, con las mismas variables pero sin la transformación logarítmica. Esto puede estar debido a la presencia de una asimetría en la variable salario, la cual puede haber desaparecido o disminuido tras aplicar la transformación logarítmica dando como resultado una distribución algo más uniforme.
+
+Se concluye, por lo tanto, que la transformación de la variable respuesta no ha causado una mejora significativa en el modelizado, pues aunque $\bar{R^2}$ mejora ligeramente, estamos perdiendo interpretabilidad en el modelo.
+
+
+
+# 7. Indica cómo incrementa el salario ante una variación, en los años de servicio en este nuevo modelo. 
+
+La fórmula tras la transformación ha pasado a ser una exponencial:
+
+$$\log(y) = \beta_0 + \beta_1 x_1 + \beta_2 x_2 \to y = \exp( \beta_0 + \beta_1 x_1 + \beta_2 x_2) \to$$
+$$y = \exp( \beta_0 )  \cdot \exp(\beta_1 x_1) \cdot \exp(\beta_2 x_2)$$
+
+Así, ahora la variable dependiente tiene una relación multiplicativa en lugar de aditiva con las variables independientes. Por tanto, para determinar el efecto que tiene un cambio en una variable explicativa sobre la variable respuesta debemos hablar de porcentajes.
+
+Si queremos calcular el porcentaje de variación del salario **al aumentar un año la variable *years.service*** ($x_1$):
+
+$$log(y_{new})=\beta_0+\beta_1(x_1+1)+\beta_2 x_2 = log(y) + \beta_1 \to \frac{y_{new}}{y} =e^{\beta_1}$$
+
+$$100 \cdot  (\frac{y_{new}}{y}-1)  = 100 \cdot (e^{\beta_1}-1)$$
+
+
+
+Debemos, por tanto, exponenciar su coeficiente, restarle la unidad y multiplicar el resultado por 100. En concreto, un incremento de una unidad en el número de años de servicio nos da: 
+
+```{r}
+(exp(-0.005316)-1)*100
+```
+una disminución del $0.5\%$ en el salario. El hecho de obtener una disminución en lugar de un aumento en el salario se debe al signo del coeficiente $\beta_1<0$.
+
+# 8. Realiza una modelización correcta del salario y presenta los resultados argumentando, desde tu conocimiento, las razones por las que eliges dicho modelo
+
+Con el objetivo de averiguar qué modelización del salario es la más adecuada para el *dataset*, vamos a utilizar el método de selección de variables *Stepwise*, el cual irá añadiendo o quitando variables y computando el grado de ajuste de cada uno de los modelos en función del indicador que seleccionamos. En este apartado, vamos a computar el AIC (Akaike Information Criteria) para cada una de las combinaciones de variables posibles y nos quedaremos con el modelo que devuelva un valor inferior:
+
+- Método *backward*: empezamos con todas las variables (fórmula completa) y quitamos una en cada iteración.
+
+```{r}
+formula_completa <- as.formula('salary~rank+discipline+sex+yrs.since.phd+yrs.service')
+modelo_completo <- lm(formula = formula_completa, data = Salaries)
+```
+
+
+```{r }
+backward<-stepAIC(modelo_completo,trace=FALSE,direction="backward")
+backward$anova
+```
+Este método nos sugiere quedarnos con todas las variables excepto *sex*, la cual ya habíamos concluido en el ejercicio 4 que no era significativa para el modelo de regresión lineal que estamos construyendo.
+
+
+- Método *forward*: vamos añadiendo una variable en cada iteración.
+  
+```{r warning=FALSE}
+modelo_vacio<-lm(formula =salary~1,data = Salaries,family=gaussian)
+forward<-stepAIC(modelo_vacio,trace=FALSE,direction="forward",scope=formula_completa)
+forward$anova
+```
+Este método, al contrario del anterior, nos sugiere quedarnos únicamente con las variables *rank* y *discipline*.
+
+- Método híbrido: una combinación de los anteriores. 
+
+```{r warning=FALSE}
+both<-stepAIC(modelo_vacio,trace=FALSE,direction="both",scope=formula_completa)
+both$anova
+```
+
+Este método nos está sugiriendo la misma combinación de variables que el método *forward*.
+
+Como los valores para el indicador AIC son muy similares en los dos modelos sugeridos, vamos a modelizar ambos y posteriormente decidiremos cuál es el óptimo. 
+
+Al utilizar en ambos modelos la variable categórica *rank*, la cual toma tres posibles valores (“AsstProf”, “AssocProf” y “Prof”), tras realizar el ajuste comprobaremos cómo se transforma en dos variables de manera análoga a lo que ocurría con la variable *sex* en el ejercicio 2.
+
+Así:
+
+- Método *backward*:
+
+```{r }
+formula5<-as.formula('salary~yrs.since.phd+yrs.service+rank+discipline')
+formula5
+```
+
+```{r}
+modelo_back<-lm(formula = formula5, data = Salaries)
+pander(summary(modelo_back))
+```
+
+
+- Método *forward*:
+
+```{r }
+formula6<-as.formula('salary~rank+discipline')
+formula6
+```
+
+```{r}
+modelo_fw<-lm(formula = formula6, data = Salaries)
+tablax<-dplyr::select(Salaries,salary,rank,discipline)
+pander(summary(modelo_fw))
+```
+
+Comparando el valor del $\bar{R^2}$ para ambos modelos, comprobamos que es muy similar en ambos casos: ${\bar{R}^2_{\text{forward}}}=0,4407 \approx\bar{R}^2_{\text{backward}}=0,4455$. Por tanto, tampoco determinamos un claro ganador con este criterio, pues ambos explican en torno a un $44\%$ de la variable respuesta *salary*. Lo que sí está claro es que ambos modelos mejoran significativamente respecto al Modelo 1, en el que solo teníamos en cuenta los años desde el doctorado y los años de servicio.
+
+Vamos a proseguir la comparación entre ambos modelos mediante un análisis de los residuos. Así, en primer lugar, analizamos si los residuos siguen una distribución normal de media cero. Para ello, nos valemos de una representación gráfica de los mismos:
+
+```{r }
+layout(matrix(c(2,1),4,2,byrow=T))
+#Histogram of Residuals
+hist(modelo_fw$resid, main="Histograma de residuos (forward)", ylab="Residuos")
+hist(modelo_back$resid, main="Histograma de residuos (backward)", ylab="Residuos")
+#q-qPlot
+qqnorm(modelo_fw$resid, main="Normal Q-Q Plot (forward)")
+qqline(modelo_fw$resid)
+qqnorm(modelo_back$resid, main="Normal Q-Q Plot (backward)")
+qqline(modelo_back$resid)
+```
+
+<br>
+
+En principio, las distribuciones se parecen a una normal. Para estar seguros, vamos a calcular el promedio y así garantizamos que están centrados en cero:
+
+```{r}
+mean(modelo_fw$resid)
+mean(modelo_back$resid)
+```
+
+Ambos resultados son compatibles con 0, por lo que damos por bueno el resultado en ambos modelos.
+
+Por último, si representamos los residuos:
+
+```{r }
+tabla2<-dplyr::select(Salaries,rank,discipline)
+plot(modelo_fw$resid~predict(modelo_fw,tabla2),
+ main="Salario x Residuos (forward)",
+ xlab="Salario", ylab="Residuos")
+abline(h=0,lty=2)
+
+tabla3<-dplyr::select(Salaries,yrs.since.phd,yrs.service,rank,discipline)
+plot(modelo_back$resid~predict(modelo_back,tabla3),
+ main="Salario x Residuos (backward)",
+ xlab="Salario", ylab="Residuos")
+abline(h=0,lty=2)
+```
+<br>
+
+Vemos que en ambos casos se concentran alrededor de determinados valores del salario. Esto es debido a que en ambos modelos hemos utilizado variables explicativas categóricas. 
+
+Concluimos pues que ambos modelos arrojan resultados similares, aunque están lejos de ser óptimos. Si lo que buscamos es una manera adecuada de explicar el salario, entonces estos modelos nos servirían pues son interpretables y podemos ver claramente la contribución de cada variable. **Si hubiera que elegir entre uno de los dos**, lo lógico, viendo que ambos arrojan un resultado muy similar, es seleccionar el más simple, que **en este caso sería el que utiliza menos variables**. Además, de esta manera estamos evitando utilizar las variables *yrs.service* y *yrs.since.phd*, las cuales hemos visto que presentan una alta colinealidad. Así, nos quedamos con el modelo devuelto por los métodos *Stepwise* *forward* e híbrido:
+
+```{r }
+formula6
+```
+
+En este modelizado, el salario queda explicado por el cargo del profesor y el tipo de enseñanza que imparte. Aquí vemos que los profesores de la disciplina B cobran en promedio 13761 unidades monetarias más que los profesores de la disciplina A. Además, los profesores asociados cobran en promedio 13762 unidades monetarias más que los profesores asistentes, mientras que los profesores son los que más cobran de todos, con un promedio superior en 47844 unidades monetarias al salario de los asistentes.
+
